@@ -15,7 +15,7 @@ jobs:
             arch=$(go env GOARCH)
             echo $os $arch
             echo https://go.kubebuilder.io/dl/latest/${os}/${arch}
-            curl -L https://go.kubebuilder.io/dl/latest/${os}/${arch}
+            curl -L https://go.kubebuilder.io/dl/latest/${os}/${arch} -o ./kubebuilder_${os}_${arch}
             sudo mv ./kubebuilder_${os}_${arch} $HOME/kubebuilder
             export PATH=$PATH:$HOME/kubebuilder/bin
       - run:
@@ -45,7 +45,7 @@ jobs:
             arch=$(go env GOARCH)
             echo $os $arch
             echo https://go.kubebuilder.io/dl/latest/${os}/${arch}
-            curl -L https://go.kubebuilder.io/dl/latest/${os}/${arch}
+            curl -L https://go.kubebuilder.io/dl/latest/${os}/${arch} -o ./kubebuilder_${os}_${arch}
             sudo mv ./kubebuilder_${os}_${arch} $HOME/kubebuilder
             export PATH=$PATH:$HOME/kubebuilder/bin
       - run:
