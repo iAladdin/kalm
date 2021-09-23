@@ -1,7 +1,4 @@
 version: 2.1
-orbs:
-  hello-orb: kalmhq-ns1/hello-orb@dev:0.0.1
-  deploy-orb: kalmhq-ns1/deploy-orb@dev:0.0.3
 jobs:
   test-dashboard:
     docker:
@@ -84,20 +81,20 @@ jobs:
 
             docker buildx build \
               --output=type=docker \
-              --cache-from=type=registry,ref=kalmhq/kalm:$CIRCLE_BRANCH-cache \
-              --cache-to=type=registry,ref=kalmhq/kalm:$CIRCLE_BRANCH-cache,mode=max \
+              --cache-from=type=registry,ref=ialaddin/kalm:$CIRCLE_BRANCH-cache \
+              --cache-to=type=registry,ref=ialaddin/kalm:$CIRCLE_BRANCH-cache,mode=max \
               --build-arg KALM_BUILD_ENV_GIT_COMMIT=$KALM_BUILD_ENV_GIT_COMMIT \
               --build-arg KALM_BUILD_ENV_GIT_VERSION=$KALM_BUILD_ENV_GIT_VERSION \
-              -t kalmhq/kalm:latest .
+              -t ialaddin/kalm:latest .
 
-            docker tag kalmhq/kalm:latest kalmhq/kalm:$CIRCLE_SHA1
-            docker push kalmhq/kalm:latest
-            docker push kalmhq/kalm:$CIRCLE_SHA1
+            docker tag ialaddin/kalm:latest ialaddin/kalm:$CIRCLE_SHA1
+            docker push ialaddin/kalm:latest
+            docker push ialaddin/kalm:$CIRCLE_SHA1
             
             if [ "$CIRCLE_TAG" != "" ]
             then
-              docker tag kalmhq/kalm:latest kalmhq/kalm:$CIRCLE_TAG
-              docker push kalmhq/kalm:$CIRCLE_TAG
+              docker tag ialaddin/kalm:latest ialaddin/kalm:$CIRCLE_TAG
+              docker push ialaddin/kalm:$CIRCLE_TAG
             fi
   build-push-controller-image:
     machine:
@@ -117,18 +114,18 @@ jobs:
 
             docker buildx build \
               --output=type=docker \
-              --cache-from=type=registry,ref=kalmhq/kalm-controller:$CIRCLE_BRANCH-cache \
-              --cache-to=type=registry,ref=kalmhq/kalm-controller:$CIRCLE_BRANCH-cache,mode=max \
-              -t kalmhq/kalm-controller:latest .
+              --cache-from=type=registry,ref=ialaddin/kalm-controller:$CIRCLE_BRANCH-cache \
+              --cache-to=type=registry,ref=ialaddin/kalm-controller:$CIRCLE_BRANCH-cache,mode=max \
+              -t ialaddin/kalm-controller:latest .
 
-            docker tag  kalmhq/kalm-controller:latest kalmhq/kalm-controller:$CIRCLE_SHA1
-            docker push kalmhq/kalm-controller:latest
-            docker push kalmhq/kalm-controller:$CIRCLE_SHA1
+            docker tag  ialaddin/kalm-controller:latest ialaddin/kalm-controller:$CIRCLE_SHA1
+            docker push ialaddin/kalm-controller:latest
+            docker push ialaddin/kalm-controller:$CIRCLE_SHA1
 
             if [ "$CIRCLE_TAG" != "" ]
             then
-              docker tag kalmhq/kalm-controller:latest kalmhq/kalm-controller:$CIRCLE_TAG
-              docker push kalmhq/kalm-controller:$CIRCLE_TAG
+              docker tag ialaddin/kalm-controller:latest ialaddin/kalm-controller:$CIRCLE_TAG
+              docker push ialaddin/kalm-controller:$CIRCLE_TAG
             fi
   build-push-operator-image:
     machine:
@@ -152,69 +149,69 @@ jobs:
 
             docker buildx build \
               --output=type=docker \
-              --cache-from=type=registry,ref=kalmhq/kalm-operator:$CIRCLE_BRANCH-cache \
-              --cache-to=type=registry,ref=kalmhq/kalm-operator:$CIRCLE_BRANCH-cache,mode=max \
-              -t kalmhq/kalm-operator:latest .
+              --cache-from=type=registry,ref=ialaddin/kalm-operator:$CIRCLE_BRANCH-cache \
+              --cache-to=type=registry,ref=ialaddin/kalm-operator:$CIRCLE_BRANCH-cache,mode=max \
+              -t ialaddin/kalm-operator:latest .
 
-            docker tag  kalmhq/kalm-operator:latest kalmhq/kalm-operator:$CIRCLE_SHA1
-            docker push kalmhq/kalm-operator:latest
-            docker push kalmhq/kalm-operator:$CIRCLE_SHA1
+            docker tag  ialaddin/kalm-operator:latest ialaddin/kalm-operator:$CIRCLE_SHA1
+            docker push ialaddin/kalm-operator:latest
+            docker push ialaddin/kalm-operator:$CIRCLE_SHA1
 
             if [ "$CIRCLE_TAG" != "" ]
             then
-              docker tag kalmhq/kalm-operator:latest kalmhq/kalm-operator:$CIRCLE_TAG
-              docker push kalmhq/kalm-operator:$CIRCLE_TAG
+              docker tag ialaddin/kalm-operator:latest ialaddin/kalm-operator:$CIRCLE_TAG
+              docker push ialaddin/kalm-operator:$CIRCLE_TAG
             fi
-  deploy-dashboard:
-    executor: deploy-orb/default
-    steps:
-      - deploy-orb/deploy:
-          KALM_API_ADDRESS: https://dashboard.kapp.live
-          KALM_DEPLOY_KEY: $DEPLOY_KEY
-          KALM_APP: kalm-system
-          KALM_COMPONENT: kalm
-          KALM_COMPONENT_IMG_TAG: $CIRCLE_SHA1
-  deploy-auth-proxy:
-    executor: deploy-orb/default
-    steps:
-      - deploy-orb/deploy:
-          KALM_API_ADDRESS: https://dashboard.kapp.live
-          KALM_DEPLOY_KEY: $DEPLOY_KEY
-          KALM_APP: kalm-system
-          KALM_COMPONENT: auth-proxy
-          KALM_COMPONENT_IMG_TAG: $CIRCLE_SHA1
-  deploy-controller:
-    docker:
-      - image: circleci/golang:1.13.11
-    steps:
-      - checkout
-      - run:
-          name: deploy
-          working_directory: ./controller
-          command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.9/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/local/bin/kubectl
-            mkdir ${HOME}/.kube
-            echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
-            IMG=kalmhq/kalm-controller:latest make deploy
-            kubectl -n kalm-system patch deployment kalm-controller -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
-  deploy-operator:
-    docker:
-      - image: circleci/golang:1.13.11
-    steps:
-      - checkout
-      - run:
-          name: deploy
-          working_directory: ./operator
-          command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.9/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/local/bin/kubectl
-            mkdir ${HOME}/.kube
-            echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
-            IMG=kalmhq/kalm-operator:latest make deploy
-            kubectl -n kalm-operator patch deployment kalm-operator -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+  # deploy-dashboard:
+  #   executor: deploy-orb/default
+  #   steps:
+  #     - deploy-orb/deploy:
+  #         KALM_API_ADDRESS: https://dashboard.kapp.live
+  #         KALM_DEPLOY_KEY: $DEPLOY_KEY
+  #         KALM_APP: kalm-system
+  #         KALM_COMPONENT: kalm
+  #         KALM_COMPONENT_IMG_TAG: $CIRCLE_SHA1
+  # deploy-auth-proxy:
+  #   executor: deploy-orb/default
+  #   steps:
+  #     - deploy-orb/deploy:
+  #         KALM_API_ADDRESS: https://dashboard.kapp.live
+  #         KALM_DEPLOY_KEY: $DEPLOY_KEY
+  #         KALM_APP: kalm-system
+  #         KALM_COMPONENT: auth-proxy
+  #         KALM_COMPONENT_IMG_TAG: $CIRCLE_SHA1
+  # deploy-controller:
+  #   docker:
+  #     - image: circleci/golang:1.13.11
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: deploy
+  #         working_directory: ./controller
+  #         command: |
+  #           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.9/bin/linux/amd64/kubectl
+  #           chmod +x ./kubectl
+  #           sudo mv ./kubectl /usr/local/bin/kubectl
+  #           mkdir ${HOME}/.kube
+  #           echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
+  #           IMG=ialaddin/kalm-controller:latest make deploy
+  #           kubectl -n kalm-system patch deployment kalm-controller -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
+  # deploy-operator:
+  #   docker:
+  #     - image: circleci/golang:1.13.11
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: deploy
+  #         working_directory: ./operator
+  #         command: |
+  #           curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.15.9/bin/linux/amd64/kubectl
+  #           chmod +x ./kubectl
+  #           sudo mv ./kubectl /usr/local/bin/kubectl
+  #           mkdir ${HOME}/.kube
+  #           echo "$KUBE_CONFIG" | base64 --decode > ${HOME}/.kube/config
+  #           IMG=ialaddin/kalm-operator:latest make deploy
+  #           kubectl -n kalm-operator patch deployment kalm-operator -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"date\":\"`date +'%s'`\"}}}}}"
 workflows:
   version: 2
   dashboard:
@@ -230,11 +227,11 @@ workflows:
               ignore: master
       - build-push-dashboard-image:
           name: manual-build-push-dashboard-image
-          context: kalm-ci
+          context: kalm
           requires:
             - hold
       - build-push-dashboard-image:
-          context: kalm-ci
+          context: kalm
           requires:
             - test-dashboard
           filters:
@@ -243,22 +240,22 @@ workflows:
                 - master
             tags:
               only: /^v.*/
-      - deploy-dashboard:
-          context: deploy-demo-cluster
-          requires:
-            - build-push-dashboard-image
-          filters:
-            branches:
-              only:
-                - master
-      - deploy-auth-proxy:
-          context: deploy-demo-cluster
-          requires:
-            - build-push-dashboard-image
-          filters:
-            branches:
-              only:
-                - master
+      # - deploy-dashboard:
+      #     context: deploy-demo-cluster
+      #     requires:
+      #       - build-push-dashboard-image
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      # - deploy-auth-proxy:
+      #     context: deploy-demo-cluster
+      #     requires:
+      #       - build-push-dashboard-image
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
   controller:
     jobs:
       - test-controller:
@@ -272,11 +269,11 @@ workflows:
               ignore: master
       - build-push-controller-image:
           name: manual-build-push-controller-image
-          context: kalm-ci
+          context: kalm
           requires:
             - hold
       - build-push-controller-image:
-          context: kalm-ci
+          context: kalm
           requires:
             - test-controller
           filters:
@@ -285,17 +282,17 @@ workflows:
                 - master
             tags:
               only: /^v.*/
-      - deploy-controller:
-          context: deploy-demo-cluster
-          requires:
-            - build-push-controller-image
-          filters:
-            branches:
-              only: master
+      # - deploy-controller:
+      #     context: deploy-demo-cluster
+      #     requires:
+      #       - build-push-controller-image
+      #     filters:
+      #       branches:
+      #         only: master
   operator:
     jobs:
       - build-push-operator-image:
-          context: kalm-ci
+          context: kalm
           filters:
             branches:
               only:
@@ -309,13 +306,13 @@ workflows:
               ignore: master
       - build-push-operator-image:
           name: manual-build-push-operator-image
-          context: kalm-ci
+          context: kalm
           requires:
             - hold
-      - deploy-operator:
-          context: deploy-demo-cluster
-          requires:
-            - build-push-operator-image
-          filters:
-            branches:
-              only: master
+      # - deploy-operator:
+      #     context: deploy-demo-cluster
+      #     requires:
+      #       - build-push-operator-image
+      #     filters:
+      #       branches:
+      #         only: master
