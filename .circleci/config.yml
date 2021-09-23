@@ -14,9 +14,10 @@ jobs:
             os=$(go env GOOS)
             arch=$(go env GOARCH)
             echo $os $arch
-            echo https://go.kubebuilder.io/dl/latest/${os}/${arch}
-            curl -L https://go.kubebuilder.io/dl/latest/${os}/${arch} -o ./kubebuilder_${os}_${arch}
-            sudo mv ./kubebuilder_${os}_${arch} $HOME/kubebuilder
+            echo https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-1.16.4-${os}-${arch}.tar.gz
+            curl -fsL "https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-1.16.4-${OS}-${ARCH}.tar.gz" -o kubebuilder-tools
+            tar -zvxf kubebuilder-tools
+            sudo mv kubebuilder/ $HOME/kubebuilder
             export PATH=$PATH:$HOME/kubebuilder/bin
       - run:
           name: go get
@@ -44,9 +45,10 @@ jobs:
             os=$(go env GOOS)
             arch=$(go env GOARCH)
             echo $os $arch
-            echo https://go.kubebuilder.io/dl/latest/${os}/${arch}
-            curl -L https://go.kubebuilder.io/dl/latest/${os}/${arch} -o ./kubebuilder_${os}_${arch}
-            sudo mv ./kubebuilder_${os}_${arch} $HOME/kubebuilder
+            echo https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-1.16.4-${os}-${arch}.tar.gz
+            curl -fsL "https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-1.16.4-${OS}-${ARCH}.tar.gz" -o kubebuilder-tools
+            tar -zvxf kubebuilder-tools
+            sudo mv kubebuilder/ $HOME/kubebuilder
             export PATH=$PATH:$HOME/kubebuilder/bin
       - run:
           name: go get
