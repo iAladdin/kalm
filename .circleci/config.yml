@@ -85,8 +85,8 @@ jobs:
 
             docker buildx build \
               --output=type=docker \
-              --cache-from=type=registry,ref=ialaddin/kalm:$CIRCLE_BRANCH-cache \
-              --cache-to=type=registry,ref=ialaddin/kalm:$CIRCLE_BRANCH-cache,mode=max \
+              # --cache-from=type=registry,ref=ialaddin/kalm:$CIRCLE_BRANCH-cache \
+              # --cache-to=type=registry,ref=ialaddin/kalm:$CIRCLE_BRANCH-cache,mode=max \
               --build-arg KALM_BUILD_ENV_GIT_COMMIT=$KALM_BUILD_ENV_GIT_COMMIT \
               --build-arg KALM_BUILD_ENV_GIT_VERSION=$KALM_BUILD_ENV_GIT_VERSION \
               -t ialaddin/kalm:latest .
