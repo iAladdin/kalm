@@ -73,7 +73,7 @@ jobs:
           name: Build & Push Docker image
           command: |
             export DOCKER_CLI_EXPERIMENTAL=enabled
-            docker buildx create --name mybuilder --use
+            docker buildx create --buildkitd-flags '--debug' --name mybuilder --use
 
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
@@ -147,7 +147,7 @@ jobs:
             # enable buildx
             export DOCKER_CLI_EXPERIMENTAL=enabled
             # use driver: docker-container
-            docker buildx create --name mybuilder --use
+            docker buildx create --buildkitd-flags '--debug' --name mybuilder --use
 
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
