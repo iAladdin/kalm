@@ -18,6 +18,7 @@ jobs:
             curl -fsL "https://github.com/kubernetes-sigs/kubebuilder/releases/download/v2.3.1/kubebuilder_2.3.1_${os}_${arch}.tar.gz" -o kubebuilder-tools
             tar -zvxf kubebuilder-tools
             sudo mv kubebuilder_2.3.1_${os}_${arch}/* $HOME/kubebuilder/
+            ls -al $HOME/kubebuilder/
             export PATH=$PATH:$HOME/kubebuilder/bin
       - run:
           name: go get
@@ -49,6 +50,7 @@ jobs:
             curl -fsL "https://github.com/kubernetes-sigs/kubebuilder/releases/download/v2.3.1/kubebuilder_2.3.1_${os}_${arch}.tar.gz" -o kubebuilder-tools
             tar -zvxf kubebuilder-tools
             sudo mv kubebuilder_2.3.1_${os}_${arch}/* $HOME/kubebuilder/
+            ls -al $HOME/kubebuilder/
             export PATH=$PATH:$HOME/kubebuilder/bin
       - run:
           name: go get
