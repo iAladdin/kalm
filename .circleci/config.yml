@@ -118,8 +118,8 @@ jobs:
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
             docker buildx build \
+              --output=type=docker \
               -t ialaddin/kalm-controller:latest .
-              # --output=type=docker \
               # --cache-from=type=registry,ref=ialaddin/kalm-controller:$CIRCLE_BRANCH-cache \
               # --cache-to=type=registry,ref=ialaddin/kalm-controller:$CIRCLE_BRANCH-cache,mode=max \
               
@@ -154,8 +154,9 @@ jobs:
             echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
             docker buildx build \
+              --output=type=docker \
               -t ialaddin/kalm-operator:latest .
-              # --output=type=docker \
+              
               # --cache-from=type=registry,ref=ialaddin/kalm-operator:$CIRCLE_BRANCH-cache \
               # --cache-to=type=registry,ref=ialaddin/kalm-operator:$CIRCLE_BRANCH-cache,mode=max \
               
