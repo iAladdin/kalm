@@ -45,12 +45,12 @@ import (
 
 const (
 	NamespaceKalmSystem = "kalm-system"
-	//KalmImgRepo          = "quay.io/kalmhq/kalm"
+	//KalmImgRepo          = "quay.io/ialaddin/kalm"
 	NamespaceCertManager = "cert-manager"
 	NamespaceIstio       = "istio-system"
 
-	KalmDashboardImgRepo  = "kalmhq/kalm"
-	KalmControllerImgRepo = "kalmhq/kalm-controller"
+	KalmDashboardImgRepo  = "ialaddin/kalm"
+	KalmControllerImgRepo = "ialaddin/kalm-controller"
 	FallbackImgVersion    = "latest"
 )
 
@@ -165,6 +165,7 @@ func (r *KalmOperatorConfigReconciler) applyFromYaml(yamlName string) error {
 			r.Log.Error(err, fmt.Sprintf("Decode yaml %s error.", yamlName))
 			return err
 		}
+		r.Log.Info(fmt.Sprintf("YAML File content: \n %+v \n", object))
 
 		objectKey, err := client.ObjectKeyFromObject(object)
 
