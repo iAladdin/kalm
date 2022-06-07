@@ -1106,8 +1106,36 @@ func (r *ComponentReconcilerTask) FixProbe(probe *corev1.Probe) *corev1.Probe {
 	return probe
 }
 
+func (r *ComponentReconcilerTask) ConvertToContainerPorts(ports []v1alpha1.Port) []corev1.ContainerPort {
+	containerPorts := make([]corev1.ContainerPort, len(r.component.Spec.Ports))
+
+	for _, port := range ports {
+
+		if port.ServicePort == 0 && port.ContainerPort != 0 {
+			port.ServicePort = port.ContainerPort
+		}
+
+		serverPortName := fmt.Sprintf("%s-%d", port.Protocol, port.ServicePort)
+
+		p := corev1.ContainerPort{
+			Name:          serverPortName,
+			HostPort:      int32(port.ServicePort),
+			ContainerPort: int32(port.ContainerPort),
+		}
+		if port.Protocol == v1alpha1.PortProtocolUDP {
+			p.Protocol = corev1.ProtocolUDP
+		} else {
+			p.Protocol = corev1.ProtocolTCP
+		}
+		containerPorts = append(containerPorts, p)
+	}
+
+	return containerPorts
+}
+
 func (r *ComponentReconcilerTask) GetPodTemplateWithoutVols() (template *corev1.PodTemplateSpec, err error) {
 	component := r.component
+	log := r.Log
 
 	labels := r.GetLabels()
 	labels["app"] = component.Name
@@ -1135,6 +1163,30 @@ func (r *ComponentReconcilerTask) GetPodTemplateWithoutVols() (template *corev1.
 		}
 	}
 
+	var containerPorts []corev1.ContainerPort
+
+	for _, port := range r.component.Spec.Ports {
+		if port.ContainerPort == 0 {
+			continue
+		}
+
+		serverPortName := fmt.Sprintf("%s-%d", port.Protocol, port.ServicePort)
+
+		p := corev1.ContainerPort{
+			Name:          serverPortName,
+			ContainerPort: int32(port.ContainerPort),
+		}
+		if port.Protocol == v1alpha1.PortProtocolUDP {
+			p.Protocol = corev1.ProtocolUDP
+		} else {
+			p.Protocol = corev1.ProtocolTCP
+		}
+		// log.Info("debug containerPorts", "containerPorts", containerPorts)
+		// log.Info("debug containerPorts", "port", p)
+		containerPorts = append(containerPorts, p)
+	}
+	// log.Info("debug containerPorts", "containerPorts", containerPorts)
+
 	template = &corev1.PodTemplateSpec{
 		ObjectMeta: metaV1.ObjectMeta{
 			Labels:      labels,
@@ -1152,11 +1204,13 @@ func (r *ComponentReconcilerTask) GetPodTemplateWithoutVols() (template *corev1.
 					},
 					ReadinessProbe: r.FixProbe(component.Spec.ReadinessProbe),
 					LivenessProbe:  r.FixProbe(component.Spec.LivenessProbe),
+					Ports:          containerPorts,
 				},
 			},
 			SecurityContext: GetPodSecurityContextFromAnnotation(annotations),
 		},
 	}
+	log.Info("debug template", "template", template)
 
 	if v, exist := component.Annotations[AnnoLastUpdatedByWebhook]; exist {
 		template.ObjectMeta.Annotations[AnnoLastUpdatedByWebhook] = v

@@ -165,7 +165,7 @@ func (r *KalmOperatorConfigReconciler) applyFromYaml(yamlName string) error {
 			r.Log.Error(err, fmt.Sprintf("Decode yaml %s error.", yamlName))
 			return err
 		}
-		r.Log.Info(fmt.Sprintf("YAML File content: \n %+v \n", object))
+		// r.Log.Info(fmt.Sprintf("YAML File content: \n %+v \n", object))
 
 		objectKey, err := client.ObjectKeyFromObject(object)
 
@@ -228,20 +228,20 @@ func (r *KalmOperatorConfigReconciler) reconcileResources() error {
 	}
 
 	if !config.Spec.SkipIstioInstallation {
-		if err := r.applyFromYaml("istio.yaml"); err != nil {
-			log.Error(err, "install istio error.")
-			return err
-		}
+		// if err := r.applyFromYaml("istio.yaml"); err != nil {
+		// 	log.Error(err, "install istio error.")
+		// 	return err
+		// }
 
-		if err := r.applyFromYaml("istiocontrolplane.yaml"); err != nil {
-			log.Error(err, "install istio plane error.")
-			return err
-		}
+		// if err := r.applyFromYaml("istiocontrolplane.yaml"); err != nil {
+		// 	log.Error(err, "install istio plane error.")
+		// 	return err
+		// }
 
-		if err := r.AddRecordingRulesForIstioPrometheus(); err != nil {
-			log.Error(err, "add recording rules form istio prometheus failed.")
-			return err
-		}
+		// if err := r.AddRecordingRulesForIstioPrometheus(); err != nil {
+		// 	log.Error(err, "add recording rules form istio prometheus failed.")
+		// 	return err
+		// }
 	}
 
 	// check dp to determine if install is ready, dp will be ready after crd
