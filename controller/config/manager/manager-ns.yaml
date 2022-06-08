@@ -6,4 +6,4 @@ metadata:
     kalm-enabled: "true"
     istio-injection: enabled
     kalm-control-plane: "true"
-  name: system
+  name: kalm-system
