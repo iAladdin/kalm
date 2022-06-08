@@ -2,7 +2,7 @@ version: 2.1
 jobs:
   test-dashboard:
     docker:
-      - image: circleci/golang:1.15.2
+      - image: circleci/golang:1.17
     environment:
       KUBEBUILDER_ASSETS: /home/circleci/kubebuilder/bin
       GO111MODULE: "on"
@@ -34,7 +34,7 @@ jobs:
           command: bash <(curl -s https://codecov.io/bash)
   test-controller:
     docker:
-      - image: circleci/golang:1.13.11
+      - image: circleci/golang:1.17
     environment:
       KUBEBUILDER_ASSETS: /home/circleci/kubebuilder/bin
       GO111MODULE: "on"
