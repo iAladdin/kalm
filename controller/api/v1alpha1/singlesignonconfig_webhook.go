@@ -87,7 +87,7 @@ type SSOGoogleConnector struct {
 	} `json:"config"`
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-singlesignonconfig,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=singlesignonconfigs,verbs=create;update,versions=v1alpha1,name=msinglesignonconfig.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-singlesignonconfig,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=singlesignonconfigs,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=msinglesignonconfig.kb.io
 
 var _ webhook.Defaulter = &SingleSignOnConfig{}
 
@@ -100,7 +100,7 @@ func (r *SingleSignOnConfig) Default() {
 	}
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-singlesignonconfig,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=singlesignonconfigs,versions=v1alpha1,name=vsinglesignonconfig.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-singlesignonconfig,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=singlesignonconfigs,versions=v1alpha1,admissionReviewVersions=v1,name=vsinglesignonconfig.kb.io
 
 var _ webhook.Validator = &SingleSignOnConfig{}
 

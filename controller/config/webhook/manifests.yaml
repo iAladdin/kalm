@@ -1,13 +1,13 @@
-
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: mutating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -24,8 +24,10 @@ webhooks:
     - UPDATE
     resources:
     - accesstokens
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -42,8 +44,10 @@ webhooks:
     - UPDATE
     resources:
     - componentpluginbindings
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -60,8 +64,10 @@ webhooks:
     - UPDATE
     resources:
     - components
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -78,8 +84,10 @@ webhooks:
     - UPDATE
     resources:
     - dockerregistries
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -96,8 +104,10 @@ webhooks:
     - UPDATE
     resources:
     - domains
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -114,8 +124,10 @@ webhooks:
     - UPDATE
     resources:
     - httproutes
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -132,8 +144,10 @@ webhooks:
     - UPDATE
     resources:
     - httpscerts
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -150,8 +164,10 @@ webhooks:
     - UPDATE
     resources:
     - logsystems
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -168,8 +184,10 @@ webhooks:
     - UPDATE
     resources:
     - protectedendpointtypes
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -186,8 +204,10 @@ webhooks:
     - UPDATE
     resources:
     - rolebindings
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -204,16 +224,17 @@ webhooks:
     - UPDATE
     resources:
     - singlesignonconfigs
-
+  sideEffects: None
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   creationTimestamp: null
   name: validating-webhook-configuration
 webhooks:
-- clientConfig:
-    caBundle: Cg==
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -231,8 +252,10 @@ webhooks:
     - DELETE
     resources:
     - accesstokens
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -249,8 +272,10 @@ webhooks:
     - UPDATE
     resources:
     - acmeservers
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -267,8 +292,10 @@ webhooks:
     - UPDATE
     resources:
     - componentpluginbindings
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -286,8 +313,10 @@ webhooks:
     - DELETE
     resources:
     - components
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -305,8 +334,10 @@ webhooks:
     - DELETE
     resources:
     - dockerregistries
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -323,8 +354,10 @@ webhooks:
     - UPDATE
     resources:
     - domains
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -342,8 +375,10 @@ webhooks:
     - DELETE
     resources:
     - httproutes
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -361,8 +396,10 @@ webhooks:
     - DELETE
     resources:
     - httpscerts
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -379,8 +416,10 @@ webhooks:
     - UPDATE
     resources:
     - httpscertissuers
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -397,8 +436,10 @@ webhooks:
     - UPDATE
     resources:
     - logsystems
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -415,8 +456,10 @@ webhooks:
     - UPDATE
     resources:
     - protectedendpointtypes
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -433,8 +476,10 @@ webhooks:
     - UPDATE
     resources:
     - rolebindings
-- clientConfig:
-    caBundle: Cg==
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
     service:
       name: webhook-service
       namespace: system
@@ -451,3 +496,4 @@ webhooks:
     - UPDATE
     resources:
     - singlesignonconfigs
+  sideEffects: None

@@ -34,7 +34,7 @@ func (r *RoleBinding) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-rolebinding,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=rolebindings,verbs=create;update,versions=v1alpha1,name=mrolebinding.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-rolebinding,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=rolebindings,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mrolebinding.kb.io
 
 var _ webhook.Defaulter = &RoleBinding{}
 
@@ -43,7 +43,7 @@ func (r *RoleBinding) Default() {
 	rolebindinglog.Info("default", "name", r.Name)
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-rolebinding,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=rolebindings,versions=v1alpha1,name=vrolebinding.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-rolebinding,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=rolebindings,versions=v1alpha1,admissionReviewVersions=v1,name=vrolebinding.kb.io
 
 var _ webhook.Validator = &RoleBinding{}
 

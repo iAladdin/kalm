@@ -1,23 +1,12 @@
-
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.2.4
+    controller-gen.kubebuilder.io/version: v0.9.0
   creationTimestamp: null
   name: httproutes.core.kalm.dev
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.hosts
-    name: Hosts
-    type: string
-  - JSONPath: .spec.paths
-    name: Paths
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: core.kalm.dev
   names:
     kind: HttpRoute
@@ -25,144 +14,105 @@ spec:
     plural: httproutes
     singular: httproute
   scope: Cluster
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: HttpRoute is the Schema for the httproutes API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: HttpRouteSpec defines the desired state of HttpRoute
-          properties:
-            conditions:
-              items:
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.hosts
+      name: Hosts
+      type: string
+    - jsonPath: .spec.paths
+      name: Paths
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: HttpRoute is the Schema for the httproutes API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: HttpRouteSpec defines the desired state of HttpRoute
+            properties:
+              conditions:
+                items:
+                  properties:
+                    name:
+                      minLength: 1
+                      type: string
+                    operator:
+                      allOf:
+                      - enum:
+                        - equal
+                        - withPrefix
+                        - matchRegexp
+                      - enum:
+                        - equal
+                        - withPrefix
+                        - matchRegexp
+                      type: string
+                    type:
+                      allOf:
+                      - enum:
+                        - query
+                        - header
+                      - enum:
+                        - query
+                        - header
+                      type: string
+                    value:
+                      type: string
+                  required:
+                  - name
+                  - operator
+                  - type
+                  - value
+                  type: object
+                type: array
+              cors:
                 properties:
-                  name:
-                    minLength: 1
-                    type: string
-                  operator:
-                    allOf:
-                    - enum:
-                      - equal
-                      - withPrefix
-                      - matchRegexp
-                    - enum:
-                      - equal
-                      - withPrefix
-                      - matchRegexp
-                    type: string
-                  type:
-                    allOf:
-                    - enum:
-                      - query
-                      - header
-                    - enum:
-                      - query
-                      - header
-                    type: string
-                  value:
-                    type: string
-                required:
-                - name
-                - operator
-                - type
-                - value
+                  allowCredentials:
+                    type: boolean
+                  allowHeaders:
+                    items:
+                      type: string
+                    type: array
+                  allowMethods:
+                    items:
+                      type: string
+                    type: array
+                  allowOrigins:
+                    items:
+                      type: string
+                    type: array
+                  maxAgeSeconds:
+                    type: integer
                 type: object
-              type: array
-            cors:
-              properties:
-                allowCredentials:
-                  type: boolean
-                allowHeaders:
-                  items:
-                    type: string
-                  type: array
-                allowMethods:
-                  items:
-                    type: string
-                  type: array
-                allowOrigins:
-                  items:
-                    type: string
-                  type: array
-                maxAgeSeconds:
-                  type: integer
-              type: object
-            delay:
-              properties:
-                delaySeconds:
-                  minimum: 1
-                  type: integer
-                percentage:
-                  minimum: 0
-                  type: integer
-              required:
-              - delaySeconds
-              - percentage
-              type: object
-            destinations:
-              items:
+              delay:
                 properties:
-                  host:
-                    minLength: 1
-                    type: string
-                  weight:
+                  delaySeconds:
+                    minimum: 1
+                    type: integer
+                  percentage:
                     minimum: 0
                     type: integer
                 required:
-                - host
-                - weight
+                - delaySeconds
+                - percentage
                 type: object
-              minItems: 1
-              type: array
-            fault:
-              properties:
-                errorStatus:
-                  type: integer
-                percentage:
-                  minimum: 0
-                  type: integer
-              required:
-              - errorStatus
-              - percentage
-              type: object
-            hosts:
-              items:
-                type: string
-              minItems: 1
-              type: array
-            httpRedirectToHttps:
-              type: boolean
-            methods:
-              items:
-                enum:
-                - GET
-                - HEAD
-                - POST
-                - PUT
-                - PATCH
-                - DELETE
-                - OPTIONS
-                - TRACE
-                - CONNECT
-                type: string
-              minItems: 1
-              type: array
-            mirror:
-              properties:
-                destination:
+              destinations:
+                items:
                   properties:
                     host:
                       minLength: 1
@@ -174,87 +124,129 @@ spec:
                   - host
                   - weight
                   type: object
-                percentage:
-                  minimum: 0
-                  type: integer
-              required:
-              - destination
-              - percentage
-              type: object
-            paths:
-              items:
-                type: string
-              minItems: 1
-              type: array
-            retries:
-              properties:
-                attempts:
-                  minimum: 0
-                  type: integer
-                perTtyTimeoutSeconds:
-                  minimum: 1
-                  type: integer
-                retryOn:
-                  items:
-                    type: string
-                  type: array
-              required:
-              - attempts
-              - perTtyTimeoutSeconds
-              - retryOn
-              type: object
-            schemes:
-              items:
-                enum:
-                - http
-                - https
-                type: string
-              minItems: 1
-              type: array
-            stripPath:
-              type: boolean
-            timeout:
-              type: integer
-          required:
-          - destinations
-          - hosts
-          - methods
-          - paths
-          - schemes
-          type: object
-        status:
-          description: HttpRouteStatus defines the observed state of HttpRoute
-          properties:
-            destinationsStatus:
-              items:
+                minItems: 1
+                type: array
+              fault:
                 properties:
-                  destinationHost:
-                    type: string
-                  error:
-                    type: string
-                  status:
-                    type: string
+                  errorStatus:
+                    type: integer
+                  percentage:
+                    minimum: 0
+                    type: integer
                 required:
-                - destinationHost
-                - status
+                - errorStatus
+                - percentage
                 type: object
-              type: array
-            hostCertifications:
-              additionalProperties:
-                type: string
-              type: object
-          required:
-          - destinationsStatus
-          type: object
-      type: object
-  version: v1alpha1
-  versions:
-  - name: v1alpha1
+              hosts:
+                items:
+                  type: string
+                minItems: 1
+                type: array
+              httpRedirectToHttps:
+                type: boolean
+              methods:
+                items:
+                  enum:
+                  - GET
+                  - HEAD
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                  - TRACE
+                  - CONNECT
+                  type: string
+                minItems: 1
+                type: array
+              mirror:
+                properties:
+                  destination:
+                    properties:
+                      host:
+                        minLength: 1
+                        type: string
+                      weight:
+                        minimum: 0
+                        type: integer
+                    required:
+                    - host
+                    - weight
+                    type: object
+                  percentage:
+                    minimum: 0
+                    type: integer
+                required:
+                - destination
+                - percentage
+                type: object
+              paths:
+                items:
+                  type: string
+                minItems: 1
+                type: array
+              retries:
+                properties:
+                  attempts:
+                    minimum: 0
+                    type: integer
+                  perTtyTimeoutSeconds:
+                    minimum: 1
+                    type: integer
+                  retryOn:
+                    items:
+                      type: string
+                    type: array
+                required:
+                - attempts
+                - perTtyTimeoutSeconds
+                - retryOn
+                type: object
+              schemes:
+                items:
+                  enum:
+                  - http
+                  - https
+                  type: string
+                minItems: 1
+                type: array
+              stripPath:
+                type: boolean
+              timeout:
+                type: integer
+            required:
+            - destinations
+            - hosts
+            - methods
+            - paths
+            - schemes
+            type: object
+          status:
+            description: HttpRouteStatus defines the observed state of HttpRoute
+            properties:
+              destinationsStatus:
+                items:
+                  properties:
+                    destinationHost:
+                      type: string
+                    error:
+                      type: string
+                    status:
+                      type: string
+                  required:
+                  - destinationHost
+                  - status
+                  type: object
+                type: array
+              hostCertifications:
+                additionalProperties:
+                  type: string
+                type: object
+            required:
+            - destinationsStatus
+            type: object
+        type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+    subresources:
+      status: {}

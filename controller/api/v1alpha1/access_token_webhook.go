@@ -36,7 +36,7 @@ func (r *AccessToken) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-accesstoken,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=accesstokens,verbs=create;update,versions=v1alpha1,name=maccesstoken.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-accesstoken,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=accesstokens,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=maccesstoken.kb.io
 
 var _ webhook.Defaulter = &AccessToken{}
 
@@ -45,7 +45,7 @@ func (r *AccessToken) Default() {
 	accesstokenlog.Info("default", "name", r.Name)
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-accesstoken,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=accesstokens,versions=v1alpha1,name=vaccesstoken.kb.io
+// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-accesstoken,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=accesstokens,versions=v1alpha1,admissionReviewVersions=v1,name=vaccesstoken.kb.io
 
 var _ webhook.Validator = &AccessToken{}
 

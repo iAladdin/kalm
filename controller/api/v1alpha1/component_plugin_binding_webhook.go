@@ -31,7 +31,7 @@ func (r *ComponentPluginBinding) SetupWebhookWithManager(mgr ctrl.Manager) error
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-componentpluginbinding,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=componentpluginbindings,verbs=create;update,versions=v1alpha1,name=mcomponentpluginbinding.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-componentpluginbinding,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=componentpluginbindings,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mcomponentpluginbinding.kb.io
 
 var _ webhook.Defaulter = &ComponentPluginBinding{}
 
@@ -39,7 +39,7 @@ func (r *ComponentPluginBinding) Default() {
 	componentpluginbindinglog.Info("default", "name", r.Name)
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-componentpluginbinding,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=componentpluginbindings,versions=v1alpha1,name=vcomponentpluginbinding.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-componentpluginbinding,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=componentpluginbindings,versions=v1alpha1,admissionReviewVersions=v1,name=vcomponentpluginbinding.kb.io
 
 var _ webhook.Validator = &ComponentPluginBinding{}
 

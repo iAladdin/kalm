@@ -38,7 +38,7 @@ func (r *Domain) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-domain,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=domains,verbs=create;update,versions=v1alpha1,name=mdomain.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-domain,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=domains,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mdomain.kb.io
 
 var _ webhook.Defaulter = &Domain{}
 
@@ -59,7 +59,7 @@ func (r *Domain) Default() {
 	}
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-domain,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=domains,versions=v1alpha1,name=vdomain.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-domain,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=domains,versions=v1alpha1,admissionReviewVersions=v1,name=vdomain.kb.io
 
 var _ webhook.Validator = &Domain{}
 

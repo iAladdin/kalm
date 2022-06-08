@@ -31,7 +31,7 @@ func (r *DockerRegistry) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-dockerregistry,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=dockerregistries,verbs=create;update,versions=v1alpha1,name=mdockerregistry.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-dockerregistry,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=dockerregistries,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mdockerregistry.kb.io
 
 var _ webhook.Defaulter = &DockerRegistry{}
 
@@ -40,7 +40,7 @@ func (r *DockerRegistry) Default() {
 
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-dockerregistry,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=dockerregistries,versions=v1alpha1,name=vdockerregistry.kb.io
+// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-dockerregistry,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=dockerregistries,versions=v1alpha1,admissionReviewVersions=v1,name=vdockerregistry.kb.io
 
 var _ webhook.Validator = &DockerRegistry{}
 

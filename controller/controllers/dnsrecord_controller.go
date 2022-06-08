@@ -83,14 +83,14 @@ func (r *DNSRecordReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		}
 
 		if !skipRemoveRecord {
-		  // ensure DNS Record is deleted before deletion of CDR
-		  if exist, err := r.dnsMgr.Exist(record.Spec.DNSType, record.Spec.Domain, record.Spec.DNSTarget); err != nil {
-		  	return ctrl.Result{}, err
-		  } else if exist {
-		  	if err := r.dnsMgr.DeleteDNSRecord(record.Spec.DNSType, record.Spec.Domain); err != nil {
-		  		return ctrl.Result{}, err
-		  	}
-		  }
+			// ensure DNS Record is deleted before deletion of CDR
+			if exist, err := r.dnsMgr.Exist(record.Spec.DNSType, record.Spec.Domain, record.Spec.DNSTarget); err != nil {
+				return ctrl.Result{}, err
+			} else if exist {
+				if err := r.dnsMgr.DeleteDNSRecord(record.Spec.DNSType, record.Spec.Domain); err != nil {
+					return ctrl.Result{}, err
+				}
+			}
 		}
 
 		copied.Finalizers = utils.RemoveString(copied.Finalizers, DNSRecordFinalizer)

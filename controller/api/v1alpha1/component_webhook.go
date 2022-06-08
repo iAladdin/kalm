@@ -41,7 +41,7 @@ func (r *Component) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-component,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=components,verbs=create;update,versions=v1alpha1,name=mcomponent.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-component,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=components,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mcomponent.kb.io
 
 var _ webhook.Defaulter = &Component{}
 
@@ -105,7 +105,7 @@ func (r *Component) Default() {
 	}
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-component,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=components,versions=v1alpha1,name=vcomponent.kb.io
+// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-component,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=components,versions=v1alpha1,admissionReviewVersions=v1,name=vcomponent.kb.io
 
 var _ webhook.Validator = &Component{}
 

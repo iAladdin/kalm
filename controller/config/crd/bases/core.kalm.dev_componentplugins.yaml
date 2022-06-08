@@ -1,20 +1,12 @@
-
 ---
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.2.4
+    controller-gen.kubebuilder.io/version: v0.9.0
   creationTimestamp: null
   name: componentplugins.core.kalm.dev
 spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.compiledSuccessfully
-    name: Compiled
-    type: boolean
-  - JSONPath: .metadata.creationTimestamp
-    name: Age
-    type: date
   group: core.kalm.dev
   names:
     kind: ComponentPlugin
@@ -22,69 +14,69 @@ spec:
     plural: componentplugins
     singular: componentplugin
   scope: Cluster
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: ComponentPlugin is the Schema for the plugins API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ComponentPluginSpec defines the desired state of ComponentPlugin
-          properties:
-            availableWorkloadType:
-              description: This array is only useful when subject is component. If
-                empty, means the plugin can be applied on all kinds of component.
-                If Not empty, this plugin can only be used on components with workload
-                type exists in this array.
-              items:
-                enum:
-                - server
-                - cronjob
-                - daemonset
-                - statefulset
-                type: string
-              type: array
-            configSchema:
-              type: object
-            icon:
-              description: icon of this plugin
-              type: string
-            src:
-              description: source code of the plugin
-              minLength: 1
-              type: string
-          required:
-          - src
-          type: object
-        status:
-          description: ComponentPluginStatus defines the observed state of ComponentPlugin
-          properties:
-            compiledSuccessfully:
-              type: boolean
-          required:
-          - compiledSuccessfully
-          type: object
-      type: object
-  version: v1alpha1
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.compiledSuccessfully
+      name: Compiled
+      type: boolean
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ComponentPlugin is the Schema for the plugins API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ComponentPluginSpec defines the desired state of ComponentPlugin
+            properties:
+              availableWorkloadType:
+                description: This array is only useful when subject is component.
+                  If empty, means the plugin can be applied on all kinds of component.
+                  If Not empty, this plugin can only be used on components with workload
+                  type exists in this array.
+                items:
+                  enum:
+                  - server
+                  - cronjob
+                  - daemonset
+                  - statefulset
+                  type: string
+                type: array
+              configSchema:
+                type: object
+              icon:
+                description: icon of this plugin
+                type: string
+              src:
+                description: source code of the plugin
+                minLength: 1
+                type: string
+            required:
+            - src
+            type: object
+          status:
+            description: ComponentPluginStatus defines the observed state of ComponentPlugin
+            properties:
+              compiledSuccessfully:
+                type: boolean
+            required:
+            - compiledSuccessfully
+            type: object
+        type: object
     served: true
     storage: true
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+    subresources:
+      status: {}

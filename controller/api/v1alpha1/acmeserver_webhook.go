@@ -32,7 +32,7 @@ func (r *ACMEServer) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-acmeserver,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=acmeservers,versions=v1alpha1,name=vacmeserver.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-acmeserver,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=acmeservers,versions=v1alpha1,admissionReviewVersions=v1,name=vacmeserver.kb.io
 
 var _ webhook.Validator = &ACMEServer{}
 

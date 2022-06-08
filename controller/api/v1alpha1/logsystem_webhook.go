@@ -34,7 +34,7 @@ func (r *LogSystem) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-logsystem,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=logsystems,verbs=create;update,versions=v1alpha1,name=mlogsystem.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-logsystem,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=logsystems,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mlogsystem.kb.io
 
 var _ webhook.Defaulter = &LogSystem{}
 
@@ -84,7 +84,7 @@ func (r *LogSystem) Default() {
 	}
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-logsystem,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=logsystems,versions=v1alpha1,name=vlogsystem.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-kalm-dev-v1alpha1-logsystem,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=logsystems,versions=v1alpha1,admissionReviewVersions=v1,name=vlogsystem.kb.io
 
 var _ webhook.Validator = &LogSystem{}
 

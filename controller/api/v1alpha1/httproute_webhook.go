@@ -36,7 +36,7 @@ func (r *HttpRoute) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-httproute,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=httproutes,verbs=create;update,versions=v1alpha1,name=mhttproute.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-httproute,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=httproutes,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mhttproute.kb.io
 
 var _ webhook.Defaulter = &HttpRoute{}
 
@@ -45,7 +45,7 @@ func (r *HttpRoute) Default() {
 	httproutelog.Info("default", "name", r.Name)
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-httproute,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=httproutes,versions=v1alpha1,name=vhttproute.kb.io
+// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-httproute,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=httproutes,versions=v1alpha1,admissionReviewVersions=v1,name=vhttproute.kb.io
 
 var _ webhook.Validator = &HttpRoute{}
 

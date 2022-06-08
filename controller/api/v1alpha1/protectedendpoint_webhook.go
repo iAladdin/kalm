@@ -33,7 +33,7 @@ func (r *ProtectedEndpoint) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/mutate-core-v1alpha1-protectedendpoint,mutating=true,failurePolicy=fail,groups=core,resources=protectedendpointtypes,versions=v1alpha1,name=mprotectedendpointtype.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/mutate-core-v1alpha1-protectedendpoint,mutating=true,failurePolicy=fail, sideEffects=none,groups=core,resources=protectedendpointtypes,versions=v1alpha1,admissionReviewVersions=v1,name=mprotectedendpointtype.kb.io
 
 var _ webhook.Defaulter = &ProtectedEndpoint{}
 
@@ -41,7 +41,7 @@ func (r *ProtectedEndpoint) Default() {
 	protectedendpointlog.Info("default", "name", r.Name)
 }
 
-// +kubebuilder:webhook:verbs=create;update,path=/validate-core-v1alpha1-protectedendpoint,mutating=false,failurePolicy=fail,groups=core,resources=protectedendpointtypes,versions=v1alpha1,name=vprotectedendpointtype.kb.io
+// +kubebuilder:webhook:verbs=create;update,path=/validate-core-v1alpha1-protectedendpoint,mutating=false,failurePolicy=fail, sideEffects=none,groups=core,resources=protectedendpointtypes,versions=v1alpha1,admissionReviewVersions=v1,name=vprotectedendpointtype.kb.io
 
 var _ webhook.Validator = &ProtectedEndpoint{}
 

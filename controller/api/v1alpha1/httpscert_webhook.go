@@ -34,7 +34,7 @@ func (r *HttpsCert) SetupWebhookWithManager(mgr ctrl.Manager) error {
 		Complete()
 }
 
-// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-httpscert,mutating=true,failurePolicy=fail,groups=core.kalm.dev,resources=httpscerts,verbs=create;update,versions=v1alpha1,name=mhttpscert.kb.io
+// +kubebuilder:webhook:path=/mutate-core-kalm-dev-v1alpha1-httpscert,mutating=true,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=httpscerts,verbs=create;update,versions=v1alpha1,admissionReviewVersions=v1,name=mhttpscert.kb.io
 
 var _ webhook.Defaulter = &HttpsCert{}
 
@@ -62,7 +62,7 @@ func (r *HttpsCert) Default() {
 	r.Spec.Domains = processedDomains
 }
 
-// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-httpscert,mutating=false,failurePolicy=fail,groups=core.kalm.dev,resources=httpscerts,versions=v1alpha1,name=vhttpscert.kb.io
+// +kubebuilder:webhook:verbs=create;update;delete,path=/validate-core-kalm-dev-v1alpha1-httpscert,mutating=false,failurePolicy=fail, sideEffects=none,groups=core.kalm.dev,resources=httpscerts,versions=v1alpha1,admissionReviewVersions=v1,name=vhttpscert.kb.io
 
 var _ webhook.Validator = &HttpsCert{}
 
