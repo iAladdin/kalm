@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jetstack/cert-manager/pkg/api"
+	"github.com/cert-manager/cert-manager/pkg/api"
 	"github.com/stretchr/testify/suite"
 	appsV1 "k8s.io/api/apps/v1"
 	authorizationv1 "k8s.io/api/authorization/v1"
@@ -41,7 +41,7 @@ func (suite *PSPSuite) SetupSuite() {
 			filepath.Join("..", "resources"),
 		},
 		WebhookInstallOptions: envtest.WebhookInstallOptions{
-			DirectoryPaths: []string{
+			Paths: []string{
 				filepath.Join("..", "config", "webhook"),
 			},
 			MaxTime: time.Duration(30 * time.Second),

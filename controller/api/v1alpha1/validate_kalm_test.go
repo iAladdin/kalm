@@ -3,12 +3,12 @@ package v1alpha1
 import (
 	"testing"
 
-	cmv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/kalmhq/kalm/controller/validation"
 	"github.com/stretchr/testify/assert"
 )
 
-var tmp = cmv1alpha2.IssuerConfig{}
+var tmp = cmv1.IssuerConfig{}
 
 var crdDefinitionInYaml = []byte(`
 apiVersion: apiextensions.k8s.io/v1beta1

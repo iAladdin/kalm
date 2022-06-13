@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	"github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"github.com/stretchr/testify/suite"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -47,7 +47,7 @@ func (suite *HttpsCertIssuerControllerSuite) TestBasicCRUD() {
 		return err == nil
 	})
 	// corresponding Issuer should be created too
-	var issuer v1alpha2.ClusterIssuer
+	var issuer v1.ClusterIssuer
 	suite.Eventually(func() bool {
 		err := suite.K8sClient.Get(
 			context.Background(),

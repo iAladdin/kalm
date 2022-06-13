@@ -24,6 +24,7 @@ import (
 	coreV1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -212,7 +213,7 @@ type GatewayReconciler struct {
 
 // +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=*
 
-func (r *GatewayReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *GatewayReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	if req.Namespace != KALM_GATEWAY_NAMESPACE || req.Name != KALM_GATEWAY_NAME {
 		return ctrl.Result{}, nil
 	}
@@ -229,11 +230,7 @@ func NewGatewayReconciler(mgr ctrl.Manager) *GatewayReconciler {
 	return &GatewayReconciler{NewBaseReconciler(mgr, "HttpRoute")}
 }
 
-type KalmGatewayRequestMapper struct {
-	*BaseReconciler
-}
-
-func (r *KalmGatewayRequestMapper) Map(handler.MapObject) []reconcile.Request {
+func KalmGatewayRequestMapperMap(client.Object) []reconcile.Request {
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: KALM_GATEWAY_NAMESPACE, Name: KALM_GATEWAY_NAME}}}
 }
 
@@ -242,15 +239,11 @@ func (r *GatewayReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&v1beta1.Gateway{}).
 		Watches(
 			&source.Kind{Type: &corev1alpha1.HttpsCert{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &KalmGatewayRequestMapper{r.BaseReconciler},
-			},
+			handler.EnqueueRequestsFromMapFunc(KalmGatewayRequestMapperMap),
 		).
 		Watches(
 			&source.Kind{Type: &corev1alpha1.HttpRoute{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &KalmGatewayRequestMapper{r.BaseReconciler},
-			},
+			handler.EnqueueRequestsFromMapFunc(KalmGatewayRequestMapperMap),
 		).
 		Complete(r)
 }

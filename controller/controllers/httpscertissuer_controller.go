@@ -27,10 +27,11 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
-	"github.com/jetstack/cert-manager/pkg/apis/acme/v1alpha2"
-	cmmetav1 "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	cmacmev1 "github.com/cert-manager/cert-manager/pkg/apis/acme/v1"
+	cmmetav1 "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,7 +41,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	cmv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	corev1alpha1 "github.com/kalmhq/kalm/controller/api/v1alpha1"
 )
@@ -54,8 +55,8 @@ type HttpsCertIssuerReconciler struct {
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=httpscertissuers/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=cert-manager.io,resources=clusterissuers,verbs=get;list;watch;create;update;patch;delete
 
-func (r *HttpsCertIssuerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *HttpsCertIssuerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	//ctx := context.Background()
 
 	certMgrNs := corev1.Namespace{}
 	err := r.Get(ctx, client.ObjectKey{Name: CertManagerNamespace}, &certMgrNs)
@@ -99,20 +100,16 @@ func NewHttpsCertIssuerReconciler(mgr ctrl.Manager) *HttpsCertIssuerReconciler {
 	}
 }
 
-type CertManagerNSWatcher struct {
-	*HttpsCertIssuerReconciler
-}
-
-func (c CertManagerNSWatcher) Map(object handler.MapObject) []reconcile.Request {
-	if object.Meta.GetName() != CertManagerNamespace {
+func (r *HttpsCertIssuerReconciler) CertManagerNSWatcherMap(object client.Object) []reconcile.Request {
+	if object.GetName() != CertManagerNamespace {
 		return nil
 	}
 
 	// creation of cert-manager ns triggers reconciliation
 	allCertIssuer := corev1alpha1.HttpsCertIssuerList{}
-	err := c.HttpsCertIssuerReconciler.List(context.Background(), &allCertIssuer)
+	err := r.List(context.Background(), &allCertIssuer)
 	if err != nil {
-		c.Log.Error(err, "fail to list httpsCertIssuers")
+		r.Log.Error(err, "fail to list httpsCertIssuers")
 		return nil
 	}
 
@@ -132,11 +129,12 @@ func (c CertManagerNSWatcher) Map(object handler.MapObject) []reconcile.Request 
 func (r *HttpsCertIssuerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1alpha1.HttpsCertIssuer{}).
-		Owns(&cmv1alpha2.Issuer{}).
+		Owns(&cmv1.Issuer{}).
 		Owns(&corev1.Secret{}).
-		Watches(genSourceForObject(&corev1.Namespace{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: CertManagerNSWatcher{r},
-		}).
+		Watches(
+			&source.Kind{Type: &corev1.Namespace{}},
+			handler.EnqueueRequestsFromMapFunc(r.CertManagerNSWatcherMap),
+		).
 		Complete(r)
 }
 
@@ -186,13 +184,13 @@ func (r *HttpsCertIssuerReconciler) ReconcileCAForTest(ctx context.Context, cert
 		r.EmitNormalEvent(&certIssuer, "SecretCreated", "secret is created.")
 	}
 
-	expectedClusterIssuer := cmv1alpha2.ClusterIssuer{
+	expectedClusterIssuer := cmv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{
 			Name: certIssuer.Name,
 		},
-		Spec: cmv1alpha2.IssuerSpec{
-			IssuerConfig: cmv1alpha2.IssuerConfig{
-				CA: &cmv1alpha2.CAIssuer{
+		Spec: cmv1.IssuerSpec{
+			IssuerConfig: cmv1.IssuerConfig{
+				CA: &cmv1.CAIssuer{
 					SecretName: caSecretName,
 				},
 			},
@@ -200,7 +198,7 @@ func (r *HttpsCertIssuerReconciler) ReconcileCAForTest(ctx context.Context, cert
 	}
 
 	// start our CA using secret
-	clusterIssuer := cmv1alpha2.ClusterIssuer{}
+	clusterIssuer := cmv1.ClusterIssuer{}
 
 	err := r.Get(ctx, types.NamespacedName{
 		Name: certIssuer.Name,
@@ -288,13 +286,13 @@ func (r *HttpsCertIssuerReconciler) ReconcileACMECloudFlare(ctx context.Context,
 	}
 
 	// ref: https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/
-	expectedClusterIssuer := cmv1alpha2.ClusterIssuer{
+	expectedClusterIssuer := cmv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{
 			Name: issuerName,
 		},
-		Spec: cmv1alpha2.IssuerSpec{
-			IssuerConfig: cmv1alpha2.IssuerConfig{
-				ACME: &v1alpha2.ACMEIssuer{
+		Spec: cmv1.IssuerSpec{
+			IssuerConfig: cmv1.IssuerConfig{
+				ACME: &cmacmev1.ACMEIssuer{
 					Email:  email,
 					Server: letsEncryptACMEIssuerServerURL,
 					PrivateKey: cmmetav1.SecretKeySelector{
@@ -302,10 +300,10 @@ func (r *HttpsCertIssuerReconciler) ReconcileACMECloudFlare(ctx context.Context,
 							Name: getPrvKeyNameForIssuer(certIssuer),
 						},
 					},
-					Solvers: []v1alpha2.ACMEChallengeSolver{
+					Solvers: []cmacmev1.ACMEChallengeSolver{
 						{
-							DNS01: &v1alpha2.ACMEChallengeSolverDNS01{
-								Cloudflare: &v1alpha2.ACMEIssuerDNS01ProviderCloudflare{
+							DNS01: &cmacmev1.ACMEChallengeSolverDNS01{
+								Cloudflare: &cmacmev1.ACMEIssuerDNS01ProviderCloudflare{
 									Email: email,
 									APIToken: &cmmetav1.SecretKeySelector{
 										LocalObjectReference: cmmetav1.LocalObjectReference{
@@ -322,7 +320,7 @@ func (r *HttpsCertIssuerReconciler) ReconcileACMECloudFlare(ctx context.Context,
 		},
 	}
 
-	clusterIssuer := cmv1alpha2.ClusterIssuer{}
+	clusterIssuer := cmv1.ClusterIssuer{}
 	var isNew bool
 	if err := r.Get(ctx, types.NamespacedName{
 		Name: issuerName,
@@ -451,13 +449,13 @@ func (r *HttpsCertIssuerReconciler) ReconcileHTTP01(ctx context.Context, issuer 
 	issuerName := issuer.Name
 	acmeChallengeSolverHTTP01IngressClass := "istio"
 
-	expectedClusterIssuer := cmv1alpha2.ClusterIssuer{
+	expectedClusterIssuer := cmv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{
 			Name: issuerName,
 		},
-		Spec: cmv1alpha2.IssuerSpec{
-			IssuerConfig: cmv1alpha2.IssuerConfig{
-				ACME: &v1alpha2.ACMEIssuer{
+		Spec: cmv1.IssuerSpec{
+			IssuerConfig: cmv1.IssuerConfig{
+				ACME: &cmacmev1.ACMEIssuer{
 					Email:  issuer.Spec.HTTP01.Email,
 					Server: letsEncryptACMEIssuerServerURL,
 					PrivateKey: cmmetav1.SecretKeySelector{ // prv key for this acme account
@@ -465,10 +463,10 @@ func (r *HttpsCertIssuerReconciler) ReconcileHTTP01(ctx context.Context, issuer 
 							Name: getPrvKeyNameForIssuer(issuer),
 						},
 					},
-					Solvers: []v1alpha2.ACMEChallengeSolver{
+					Solvers: []cmacmev1.ACMEChallengeSolver{
 						{
-							HTTP01: &v1alpha2.ACMEChallengeSolverHTTP01{
-								Ingress: &v1alpha2.ACMEChallengeSolverHTTP01Ingress{
+							HTTP01: &cmacmev1.ACMEChallengeSolverHTTP01{
+								Ingress: &cmacmev1.ACMEChallengeSolverHTTP01Ingress{
 									Class: &acmeChallengeSolverHTTP01IngressClass,
 								},
 							},
@@ -479,7 +477,7 @@ func (r *HttpsCertIssuerReconciler) ReconcileHTTP01(ctx context.Context, issuer 
 		},
 	}
 
-	var clusterIssuer cmv1alpha2.ClusterIssuer
+	var clusterIssuer cmv1.ClusterIssuer
 	if err := r.Get(ctx, client.ObjectKey{Name: issuerName}, &clusterIssuer); err != nil {
 		if !errors.IsNotFound(err) {
 			return ctrl.Result{}, err
@@ -500,23 +498,23 @@ func (r *HttpsCertIssuerReconciler) ReconcileDNS01(
 	issuer corev1alpha1.HttpsCertIssuer,
 ) (ctrl.Result, error) {
 
-	expectedClusterIssuer := cmv1alpha2.ClusterIssuer{
+	expectedClusterIssuer := cmv1.ClusterIssuer{
 		ObjectMeta: v1.ObjectMeta{
 			Name: issuer.Name,
 		},
-		Spec: cmv1alpha2.IssuerSpec{
-			IssuerConfig: cmv1alpha2.IssuerConfig{
-				ACME: &v1alpha2.ACMEIssuer{
+		Spec: cmv1.IssuerSpec{
+			IssuerConfig: cmv1.IssuerConfig{
+				ACME: &cmacmev1.ACMEIssuer{
 					Server: letsEncryptACMEIssuerServerURL,
 					PrivateKey: cmmetav1.SecretKeySelector{ // prv key for this acme account
 						LocalObjectReference: cmmetav1.LocalObjectReference{
 							Name: getPrvKeyNameForIssuer(issuer),
 						},
 					},
-					Solvers: []v1alpha2.ACMEChallengeSolver{
+					Solvers: []cmacmev1.ACMEChallengeSolver{
 						{
-							DNS01: &v1alpha2.ACMEChallengeSolverDNS01{
-								AcmeDNS: &v1alpha2.ACMEIssuerDNS01ProviderAcmeDNS{
+							DNS01: &cmacmev1.ACMEChallengeSolverDNS01{
+								AcmeDNS: &cmacmev1.ACMEIssuerDNS01ProviderAcmeDNS{
 									Host: fmt.Sprintf("http://%s", getSVCNameForACMEDNS()),
 									AccountSecret: cmmetav1.SecretKeySelector{
 										LocalObjectReference: cmmetav1.LocalObjectReference{
@@ -533,7 +531,7 @@ func (r *HttpsCertIssuerReconciler) ReconcileDNS01(
 		},
 	}
 
-	clusterIssuer := cmv1alpha2.ClusterIssuer{}
+	clusterIssuer := cmv1.ClusterIssuer{}
 	isNew := false
 
 	err := r.Get(ctx, client.ObjectKey{Name: expectedClusterIssuer.Name}, &clusterIssuer)

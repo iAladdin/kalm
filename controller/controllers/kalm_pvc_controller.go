@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -52,7 +53,7 @@ func NewKalmPVCReconciler(mgr ctrl.Manager) *KalmPVCReconciler {
 // +kubebuilder:rbac:groups="",resources=persistentvolumes,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
 
-func (r *KalmPVCReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *KalmPVCReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.Info("reconciling kalmPvc volumes", "req", req)
 
 	pvc := corev1.PersistentVolumeClaim{}
@@ -110,22 +111,18 @@ func (r *KalmPVCReconciler) reconcileForPVCOwnerChange(pvc corev1.PersistentVolu
 	return nil
 }
 
-type PodMapperForPVC struct {
-	*BaseReconciler
-}
+func (r *KalmPVCReconciler) PodMapperForPVCMap(object client.Object) []reconcile.Request {
 
-func (c PodMapperForPVC) Map(object handler.MapObject) []reconcile.Request {
-
-	if v, exist := object.Meta.GetLabels()[KalmLabelManaged]; !exist || v != "true" {
+	if v, exist := object.GetLabels()[KalmLabelManaged]; !exist || v != "true" {
 		return nil
 	}
 
 	var pod corev1.Pod
 	podKey := client.ObjectKey{
-		Namespace: object.Meta.GetNamespace(),
-		Name:      object.Meta.GetName(),
+		Namespace: object.GetNamespace(),
+		Name:      object.GetName(),
 	}
-	err := c.Get(context.Background(), podKey, &pod)
+	err := r.Get(context.Background(), podKey, &pod)
 	if err != nil {
 		return nil
 	}
@@ -148,8 +145,9 @@ func (c PodMapperForPVC) Map(object handler.MapObject) []reconcile.Request {
 func (r *KalmPVCReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.PersistentVolumeClaim{}).
-		Watches(genSourceForObject(&corev1.Pod{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: PodMapperForPVC{r.BaseReconciler},
-		}).
+		Watches(
+			&source.Kind{Type: &corev1.Pod{}},
+			handler.EnqueueRequestsFromMapFunc(r.PodMapperForPVCMap),
+		).
 		Complete(r)
 }

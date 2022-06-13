@@ -861,7 +861,7 @@ func (r *SingleSignOnConfigReconcilerTask) ReconcileResources() error {
 // +kubebuilder:rbac:groups=apiextensions.k8s.io,resources=customresourcedefinitions,verbs=create
 // +kubebuilder:rbac:groups=dex.coreos.com,resources=*,verbs=create
 
-func (r *SingleSignOnConfigReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *SingleSignOnConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	task := &SingleSignOnConfigReconcilerTask{
 		SingleSignOnConfigReconciler: r,
 		ctx:                          context.Background(),

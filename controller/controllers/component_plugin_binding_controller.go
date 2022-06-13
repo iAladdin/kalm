@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"github.com/xeipuuv/gojsonschema"
@@ -34,7 +35,7 @@ type ComponentPluginBindingReconciler struct {
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=componentpluginbindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=componentpluginbindings/status,verbs=get;update;patch
 
-func (r *ComponentPluginBindingReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ComponentPluginBindingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (reconcile.Result, error) {
 	task := &ComponentPluginBindingReconcilerTask{
 		ComponentPluginBindingReconciler: r,
 		ctx:                              context.Background(),

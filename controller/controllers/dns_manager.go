@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -64,7 +65,7 @@ func (m CloudflareDNSManager) CreateDNSRecord(dnsType v1alpha1.DNSType, name, co
 		return NoCloudflareZoneIDForDomainError
 	}
 
-	resp, err := m.API.CreateDNSRecord(zoneID, cloudflare.DNSRecord{
+	resp, err := m.API.CreateDNSRecord(context.Background(), zoneID, cloudflare.DNSRecord{
 		Type:    string(dnsType),
 		Name:    name,
 		Content: content,
@@ -97,7 +98,7 @@ func (m CloudflareDNSManager) DeleteDNSRecord(dnsType v1alpha1.DNSType, domain s
 			continue
 		}
 
-		return m.API.DeleteDNSRecord(zoneID, r.ID)
+		return m.API.DeleteDNSRecord(context.Background(), zoneID, r.ID)
 	}
 
 	// for not exist record, return without error
@@ -144,7 +145,7 @@ func (m CloudflareDNSManager) GetDNSRecords(domain string) ([]DNSRecord, error) 
 		return nil, NoCloudflareZoneIDForDomainError
 	}
 
-	resp, err := m.API.DNSRecords(zoneID, cloudflare.DNSRecord{})
+	resp, err := m.API.DNSRecords(context.Background(), zoneID, cloudflare.DNSRecord{})
 	if err != nil {
 		return nil, err
 	}

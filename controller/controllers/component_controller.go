@@ -40,7 +40,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -97,7 +96,7 @@ type ComponentReconcilerTask struct {
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=networking.istio.io,resources=destinationrules,verbs=*
 
-func (r *ComponentReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ComponentReconciler) Reconcile(ctx context.Context, req reconcile.Request) (reconcile.Result, error) {
 	r.Log.Info("reconciling component", "req", req)
 
 	task := &ComponentReconcilerTask{
@@ -122,12 +121,8 @@ func NewComponentReconciler(mgr ctrl.Manager) *ComponentReconciler {
 	}
 }
 
-type ComponentPluginBindingsMapper struct {
-	*BaseReconciler
-}
-
-func (r *ComponentPluginBindingsMapper) Map(object handler.MapObject) []reconcile.Request {
-	if binding, ok := object.Object.(*v1alpha1.ComponentPluginBinding); ok {
+func (r *ComponentReconciler) ComponentPluginBindingsMapperMap(object client.Object) []reconcile.Request {
+	if binding, ok := object.(*v1alpha1.ComponentPluginBinding); ok {
 		if binding.Spec.ComponentName == "" {
 			var componentList v1alpha1.ComponentList
 			err := r.Reader.List(context.Background(), &componentList, client.InNamespace(binding.Namespace))
@@ -159,7 +154,7 @@ func (r *ComponentPluginBindingsMapper) Map(object handler.MapObject) []reconcil
 }
 
 func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &appsV1.Deployment{}, ownerKey, func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &appsV1.Deployment{}, ownerKey, func(rawObj client.Object) []string {
 		deployment := rawObj.(*appsV1.Deployment)
 		owner := metaV1.GetControllerOf(deployment)
 
@@ -176,7 +171,7 @@ func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchV1Beta1.CronJob{}, ownerKey, func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchV1Beta1.CronJob{}, ownerKey, func(rawObj client.Object) []string {
 		cronjob := rawObj.(*batchV1Beta1.CronJob)
 		owner := metaV1.GetControllerOf(cronjob)
 
@@ -193,7 +188,7 @@ func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Service{}, ownerKey, func(rawObj runtime.Object) []string {
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Service{}, ownerKey, func(rawObj client.Object) []string {
 		// grab the job object, extract the owner...
 		service := rawObj.(*corev1.Service)
 		owner := metaV1.GetControllerOf(service)
@@ -213,9 +208,10 @@ func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Component{}).
-		Watches(&source.Kind{Type: &v1alpha1.ComponentPluginBinding{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &ComponentPluginBindingsMapper{r.BaseReconciler},
-		}).
+		Watches(
+			&source.Kind{Type: &v1alpha1.ComponentPluginBinding{}},
+			handler.EnqueueRequestsFromMapFunc(r.ComponentPluginBindingsMapperMap),
+		).
 		Owns(&appsV1.Deployment{}).
 		Owns(&batchV1Beta1.CronJob{}).
 		Owns(&appsV1.DaemonSet{}).
@@ -1691,7 +1687,7 @@ func (r *ComponentReconcilerTask) DeleteResources() (err error) {
 	return nil
 }
 
-func (r *ComponentReconcilerTask) DeleteItem(obj runtime.Object) (err error) {
+func (r *ComponentReconcilerTask) DeleteItem(obj client.Object) (err error) {
 	if err := r.Client.Delete(r.ctx, obj); err != nil {
 		gvk := obj.GetObjectKind().GroupVersionKind()
 		r.WarningEvent(err, fmt.Sprintf(" delete item error. Group: %s, Version: %s, Kind: %s", gvk.Group, gvk.Version, gvk.Kind))
@@ -1837,7 +1833,7 @@ func (r *ComponentReconcilerTask) LoadStatefulSet() error {
 	return nil
 }
 
-func (r *ComponentReconcilerTask) LoadItem(dest runtime.Object) (err error) {
+func (r *ComponentReconcilerTask) LoadItem(dest client.Object) (err error) {
 	if err := r.Reader.Get(
 		r.ctx,
 		types.NamespacedName{

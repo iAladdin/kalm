@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -54,7 +55,7 @@ func NewKalmPVReconciler(mgr ctrl.Manager) *KalmPVReconciler {
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch
 // +kubebuilder:rbac:groups="",resources=persistentvolumes,verbs=get;list;watch;create;update;patch;delete
 
-func (r *KalmPVReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *KalmPVReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	r.Log.Info("reconciling kalmPV", "req", req)
 
 	// special ns triggers check of pv need to be cleaned
@@ -63,10 +64,6 @@ func (r *KalmPVReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	} else {
 		return ctrl.Result{}, r.reconcilePV(req.Name)
 	}
-}
-
-type PVCMapper struct {
-	*BaseReconciler
 }
 
 func (r *KalmPVReconciler) reconcileForPVCChange() error {
@@ -191,8 +188,8 @@ const (
 	NSForPVCChanged = "special-ns-as-signal-for-pvc-changed"
 )
 
-func (m PVCMapper) Map(obj handler.MapObject) []reconcile.Request {
-	if v, exist := obj.Meta.GetLabels()[KalmLabelManaged]; !exist || v != "true" {
+func PVCMapperMap(obj client.Object) []reconcile.Request {
+	if v, exist := obj.GetLabels()[KalmLabelManaged]; !exist || v != "true" {
 		return nil
 	}
 
@@ -208,9 +205,10 @@ func (m PVCMapper) Map(obj handler.MapObject) []reconcile.Request {
 func (r *KalmPVReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1.PersistentVolume{}).
-		Watches(genSourceForObject(&corev1.PersistentVolumeClaim{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &PVCMapper{r.BaseReconciler},
-		}).
+		Watches(
+			&source.Kind{Type: &corev1.PersistentVolumeClaim{}},
+			handler.EnqueueRequestsFromMapFunc(PVCMapperMap),
+		).
 		Complete(r)
 }
 

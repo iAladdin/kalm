@@ -18,6 +18,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sync"
 
 	js "github.com/dop251/goja"
@@ -107,7 +108,7 @@ type ComponentPluginReconciler struct {
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=componentpluginbindings,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=componentpluginbindings/status,verbs=get;update;patch
 
-func (r *ComponentPluginReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ComponentPluginReconciler) Reconcile(ctx context.Context, req ctrl.Request) (reconcile.Result, error) {
 	task := &ComponentPluginReconcilerTask{
 		ComponentPluginReconciler: r,
 		ctx:                       context.Background(),

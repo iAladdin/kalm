@@ -25,7 +25,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -56,13 +55,10 @@ func NewKalmNSReconciler(mgr ctrl.Manager) *KalmNSReconciler {
 	}
 }
 
-// resource change needs trigger reconcile
-type MapperForDefaultHttpsCertIssuer struct{}
-
-func (m MapperForDefaultHttpsCertIssuer) Map(mapObj handler.MapObject) []reconcile.Request {
+func MapperForDefaultHttpsCertIssuerMap(mapObj client.Object) []reconcile.Request {
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{
-		Namespace: mapObj.Meta.GetNamespace(),
-		Name:      "default-httpscertissuer-" + mapObj.Meta.GetName(),
+		Namespace: mapObj.GetNamespace(),
+		Name:      "default-httpscertissuer-" + mapObj.GetName(),
 	}}}
 }
 
@@ -70,22 +66,17 @@ func (r *KalmNSReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1.Namespace{}).
-		Watches(genSourceForObject(&v1alpha1.HttpsCertIssuer{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: MapperForDefaultHttpsCertIssuer{},
-		}).
+		Watches(
+			&source.Kind{Type: &v1alpha1.HttpsCertIssuer{}},
+			handler.EnqueueRequestsFromMapFunc(MapperForDefaultHttpsCertIssuerMap),
+		).
 		Complete(r)
-}
-
-func genSourceForObject(obj runtime.Object) source.Source {
-	return &source.Kind{Type: obj}
 }
 
 // +kubebuilder:rbac:groups="",resources=namespaces,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=metrics.k8s.io,resources=*,verbs=get;list;watch
 
-func (r *KalmNSReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := r.ctx
-
+func (r *KalmNSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	ns := v1.Namespace{}
 	if err := r.Get(ctx, client.ObjectKey{Name: req.Name}, &ns); err != nil {
 		if errors.IsNotFound(err) {

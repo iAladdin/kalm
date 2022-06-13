@@ -57,7 +57,7 @@ const SkipRemoveRecordOnDeleteAnnotation = "skip-remove-record-on-delete"
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=dnsrecords,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=dnsrecords/status,verbs=get;update;patch
 
-func (r *DNSRecordReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *DNSRecordReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("dnsrecord", req.NamespacedName)
 
 	if r.dnsMgr == nil {

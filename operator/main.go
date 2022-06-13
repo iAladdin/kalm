@@ -21,7 +21,7 @@ import (
 	"flag"
 	"os"
 
-	cmv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	installv1alpha1 "github.com/kalmhq/kalm/operator/api/v1alpha1"
 	"github.com/kalmhq/kalm/operator/controllers"
@@ -47,7 +47,7 @@ func init() {
 
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = installv1alpha1.AddToScheme(scheme)
-	_ = cmv1alpha2.AddToScheme(scheme)
+	_ = cmv1.AddToScheme(scheme)
 	_ = apiextv1beta1.AddToScheme(scheme)
 	_ = apiextv1.AddToScheme(scheme)
 	_ = istioScheme.AddToScheme(scheme)

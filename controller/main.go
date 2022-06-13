@@ -19,10 +19,10 @@ import (
 	"flag"
 	"os"
 
-	monitoringv1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	elkv1 "github.com/elastic/cloud-on-k8s/pkg/apis/elasticsearch/v1"
 	kibanav1 "github.com/elastic/cloud-on-k8s/pkg/apis/kibana/v1"
 	_ "github.com/joho/godotenv/autoload"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	istioScheme "istio.io/client-go/pkg/clientset/versioned/scheme"
 
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -35,7 +35,7 @@ import (
 	corev1alpha1 "github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"github.com/kalmhq/kalm/controller/controllers"
 
-	cmv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	apiregistration "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1"
 	// +kubebuilder:scaffold:imports
 )
@@ -50,7 +50,7 @@ func init() {
 
 	_ = corev1alpha1.AddToScheme(scheme)
 
-	_ = cmv1alpha2.AddToScheme(scheme)
+	_ = cmv1.AddToScheme(scheme)
 
 	err := apiextv1beta1.AddToScheme(scheme)
 	if err != nil {

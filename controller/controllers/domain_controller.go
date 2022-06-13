@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 
@@ -48,7 +49,7 @@ func NewDomainReconciler(mgr ctrl.Manager) *DomainReconciler {
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=domains,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=domains/status,verbs=get;update;patch
 
-func (r *DomainReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *DomainReconciler) Reconcile(ctx context.Context, req ctrl.Request) (reconcile.Result, error) {
 	_ = r.Log.WithValues("domain", req.NamespacedName)
 	return ctrl.Result{}, nil
 }

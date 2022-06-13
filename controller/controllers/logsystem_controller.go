@@ -75,7 +75,7 @@ func (r *LogSystemReconcilerTask) NameToNamespacedName(name string) types.Namesp
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=logsystems,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=logsystems/status,verbs=get;update;patch
 
-func (r *LogSystemReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *LogSystemReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	task := &LogSystemReconcilerTask{
 		LogSystemReconciler: r,
 		ctx:                 context.Background(),
@@ -261,7 +261,7 @@ func (r *LogSystemReconcilerTask) ReconcilePLGMonolithicLoki() error {
 				SuccessThreshold:    1,
 				TimeoutSeconds:      1,
 				FailureThreshold:    3,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/ready",
 						Port:   intstr.FromInt(3100),
@@ -275,7 +275,7 @@ func (r *LogSystemReconcilerTask) ReconcilePLGMonolithicLoki() error {
 				SuccessThreshold:    1,
 				TimeoutSeconds:      1,
 				FailureThreshold:    3,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/ready",
 						Port:   intstr.FromInt(3100),
@@ -418,7 +418,7 @@ func (r *LogSystemReconcilerTask) ReconcilePLGMonolithicGrafana() error {
 				SuccessThreshold: 1,
 				TimeoutSeconds:   1,
 				FailureThreshold: 3,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/api/health",
 						Port:   intstr.FromInt(3000),
@@ -432,7 +432,7 @@ func (r *LogSystemReconcilerTask) ReconcilePLGMonolithicGrafana() error {
 				SuccessThreshold:    1,
 				TimeoutSeconds:      30,
 				FailureThreshold:    10,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/api/health",
 						Port:   intstr.FromInt(3000),
@@ -561,7 +561,7 @@ func (r *LogSystemReconcilerTask) ReconcilePLGMonolithicPromtail() error {
 				TimeoutSeconds:      1,
 				FailureThreshold:    5,
 				InitialDelaySeconds: 10,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/ready",
 						Port:   intstr.FromInt(3101),

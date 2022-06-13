@@ -98,7 +98,7 @@ type KalmOperatorConfigReconciler struct {
 // +kubebuilder:rbac:groups=config.istio.io,resources=*,verbs=*
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=*,verbs=*
 
-func (r *KalmOperatorConfigReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *KalmOperatorConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("kalmoperatorconfig", req.NamespacedName)
 
 	log.Info("KalmOperatorConfigReconciler reconciling...")
@@ -160,14 +160,13 @@ func (r *KalmOperatorConfigReconciler) applyFromYaml(yamlName string) error {
 
 	for _, objectBytes := range objectsBytes {
 		object, _, err := decode(objectBytes, nil, nil)
-
+		cObject := object.(client.Object)
 		if err != nil {
 			r.Log.Error(err, fmt.Sprintf("Decode yaml %s error.", yamlName))
 			return err
 		}
 		// r.Log.Info(fmt.Sprintf("YAML File content: \n %+v \n", object))
-
-		objectKey, err := client.ObjectKeyFromObject(object)
+		objectKey := client.ObjectKeyFromObject(cObject)
 
 		if err != nil {
 			r.Log.Error(err, "get Object Key from object error")
@@ -176,15 +175,16 @@ func (r *KalmOperatorConfigReconciler) applyFromYaml(yamlName string) error {
 
 		apiVersion, kind := object.GetObjectKind().GroupVersionKind().ToAPIVersionAndKind()
 		fetchedObj, err := r.Scheme.New(object.GetObjectKind().GroupVersionKind())
+		cFetchedObj := fetchedObj.(client.Object)
 
 		if err != nil {
 			r.Log.Error(err, fmt.Sprintf("New object error, apiVersion: %s, kind: %s", apiVersion, kind))
 			return err
 		}
 
-		if err := r.Client.Get(r.Ctx, objectKey, fetchedObj); err != nil {
+		if err := r.Client.Get(r.Ctx, objectKey, cFetchedObj); err != nil {
 			if errors.IsNotFound(err) {
-				err = r.Client.Create(r.Ctx, object)
+				err = r.Client.Create(r.Ctx, cObject)
 
 				if err != nil {
 					r.Log.Error(err, fmt.Sprintf("Create object error: %v", objectKey))
@@ -199,7 +199,7 @@ func (r *KalmOperatorConfigReconciler) applyFromYaml(yamlName string) error {
 			}
 		}
 
-		if err := r.Client.Patch(r.Ctx, object, client.Merge); err != nil {
+		if err := r.Client.Patch(r.Ctx, cObject, client.Merge); err != nil {
 			r.Log.Error(err, fmt.Sprintf("Apply object failed. %v", objectKey))
 			return err
 		}
@@ -402,19 +402,15 @@ func (r *KalmOperatorConfigReconciler) isClusterInfoReported() bool {
 	return status != nil && status.ClusterInfoHasSendToKalmCloud
 }
 
-type KalmIstioPrometheusWather struct{}
-
-func (r *KalmIstioPrometheusWather) Map(obj handler.MapObject) []reconcile.Request {
-	if obj.Meta.GetNamespace() != "istio-system" || obj.Meta.GetName() != "prometheus" {
+func KalmIstioPrometheusWatherMap(obj client.Object) []reconcile.Request {
+	if obj.GetNamespace() != "istio-system" || obj.GetName() != "prometheus" {
 		return nil
 	}
 
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: "kalm-operator", Name: "reconcile-caused-by-prometheus-config"}}}
 }
 
-type KalmEssentialNSWatcher struct{}
-
-func (k KalmEssentialNSWatcher) Map(object handler.MapObject) []reconcile.Request {
+func KalmEssentialNSWatcherMap(object client.Object) []reconcile.Request {
 	// any change in essential namespace will trigger reconciliation
 	targetNamespaces := []string{
 		NamespaceIstio,
@@ -422,7 +418,7 @@ func (k KalmEssentialNSWatcher) Map(object handler.MapObject) []reconcile.Reques
 		NamespaceKalmSystem,
 	}
 
-	curNS := object.Meta.GetName()
+	curNS := object.GetName()
 	for _, targetNs := range targetNamespaces {
 		if curNS != targetNs {
 			continue
@@ -441,9 +437,7 @@ func (k KalmEssentialNSWatcher) Map(object handler.MapObject) []reconcile.Reques
 	return nil
 }
 
-type KalmDeploymentInEssentialNSWatcher struct{}
-
-func (k KalmDeploymentInEssentialNSWatcher) Map(object handler.MapObject) []reconcile.Request {
+func KalmDeploymentInEssentialNSWatcherMap(object client.Object) []reconcile.Request {
 	// any change of dp in targetNS will trigger reconciliation
 	targetNamespaces := []string{
 		NamespaceIstio,
@@ -451,7 +445,7 @@ func (k KalmDeploymentInEssentialNSWatcher) Map(object handler.MapObject) []reco
 		NamespaceKalmSystem,
 	}
 
-	curNS := object.Meta.GetNamespace()
+	curNS := object.GetNamespace()
 	for _, targetNs := range targetNamespaces {
 		if curNS != targetNs {
 			continue
@@ -459,7 +453,7 @@ func (k KalmDeploymentInEssentialNSWatcher) Map(object handler.MapObject) []reco
 
 		return []reconcile.Request{{
 			NamespacedName: types.NamespacedName{
-				Name:      "DP-CHANGE-" + object.Meta.GetName(),
+				Name:      "DP-CHANGE-" + object.GetName(),
 				Namespace: curNS,
 			},
 		}}
@@ -468,11 +462,9 @@ func (k KalmDeploymentInEssentialNSWatcher) Map(object handler.MapObject) []reco
 	return nil
 }
 
-type KalmLoadBalancerServiceWatcher struct{}
-
-func (w KalmLoadBalancerServiceWatcher) Map(obj handler.MapObject) []reconcile.Request {
-	ns := obj.Meta.GetNamespace()
-	name := obj.Meta.GetName()
+func KalmLoadBalancerServiceWatcherMap(obj client.Object) []reconcile.Request {
+	ns := obj.GetNamespace()
+	name := obj.GetName()
 
 	if (ns == v1alpha1.KalmSystemNamespace && name == "lb-svc-acme-server") ||
 		(ns == "istio-system" && name == "istio-ingressgateway") {
@@ -491,18 +483,22 @@ func (w KalmLoadBalancerServiceWatcher) Map(obj handler.MapObject) []reconcile.R
 func (r *KalmOperatorConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&installv1alpha1.KalmOperatorConfig{}).
-		Watches(&source.Kind{Type: &corev1.Namespace{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &KalmEssentialNSWatcher{},
-		}).
-		Watches(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &KalmDeploymentInEssentialNSWatcher{},
-		}).
-		Watches(&source.Kind{Type: &corev1.ConfigMap{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &KalmIstioPrometheusWather{},
-		}).
-		Watches(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &KalmLoadBalancerServiceWatcher{},
-		}).
+		Watches(
+			&source.Kind{Type: &corev1.Namespace{}},
+			handler.EnqueueRequestsFromMapFunc(KalmEssentialNSWatcherMap),
+		).
+		Watches(
+			&source.Kind{Type: &appsv1.Deployment{}},
+			handler.EnqueueRequestsFromMapFunc(KalmDeploymentInEssentialNSWatcherMap),
+		).
+		Watches(
+			&source.Kind{Type: &corev1.ConfigMap{}},
+			handler.EnqueueRequestsFromMapFunc(KalmIstioPrometheusWatherMap),
+		).
+		Watches(
+			&source.Kind{Type: &corev1.Service{}},
+			handler.EnqueueRequestsFromMapFunc(KalmLoadBalancerServiceWatcherMap),
+		).
 		Complete(r)
 }
 

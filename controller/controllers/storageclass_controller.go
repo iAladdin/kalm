@@ -32,7 +32,7 @@ func (r *StorageClassReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=storage.k8s.io,resources=storageclasses,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=get;list;watch
 
-func (r *StorageClassReconciler) Reconcile(_ ctrl.Request) (ctrl.Result, error) {
+func (r *StorageClassReconciler) Reconcile(ctx context.Context, _ ctrl.Request) (ctrl.Result, error) {
 	// prepare storage class
 	cloudProvider, ok := r.guessCurrentCloudProvider()
 	if !ok {

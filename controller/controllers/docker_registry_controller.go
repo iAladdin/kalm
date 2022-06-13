@@ -28,7 +28,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -310,7 +309,7 @@ func (r *DockerRegistryReconcileTask) LoadRegistry(req ctrl.Request) (err error)
 // +kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=create;patch
 
-func (r *DockerRegistryReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *DockerRegistryReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	task := &DockerRegistryReconcileTask{
 		DockerRegistryReconciler: r,
 		ctx:                      context.Background(),
@@ -319,14 +318,10 @@ func (r *DockerRegistryReconciler) Reconcile(req ctrl.Request) (ctrl.Result, err
 	return ctrl.Result{}, task.Run(req)
 }
 
-type TouchAllRegistriesMapper struct {
-	*BaseReconciler
-}
-
-func (m *TouchAllRegistriesMapper) Map(object handler.MapObject) []reconcile.Request {
+func (r *DockerRegistryReconciler) TouchAllRegistriesMapperMap(object client.Object) []reconcile.Request {
 	var rsList corev1alpha1.DockerRegistryList
 
-	if err := m.Reader.List(context.Background(), &rsList); err != nil {
+	if err := r.Reader.List(context.Background(), &rsList); err != nil {
 		return nil
 	}
 
@@ -343,12 +338,8 @@ func (m *TouchAllRegistriesMapper) Map(object handler.MapObject) []reconcile.Req
 	return res
 }
 
-type DockerRegistryAuthenticationSecretMapper struct {
-	*BaseReconciler
-}
-
-func (m *DockerRegistryAuthenticationSecretMapper) Map(object handler.MapObject) []reconcile.Request {
-	if secret, ok := object.Object.(*v1.Secret); ok && IsRegistryAuthenticationSecret(secret) {
+func DockerRegistryAuthenticationSecretMapperMap(object client.Object) []reconcile.Request {
+	if secret, ok := object.(*v1.Secret); ok && IsRegistryAuthenticationSecret(secret) {
 		return []reconcile.Request{
 			{NamespacedName: types.NamespacedName{Name: GetRegistryNameFromAuthenticationName(secret.Name)}},
 		}
@@ -364,7 +355,8 @@ func NewDockerRegistryReconciler(mgr ctrl.Manager) *DockerRegistryReconciler {
 }
 
 func (r *DockerRegistryReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Secret{}, ownerKey, func(rawObj runtime.Object) []string {
+
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.Secret{}, ownerKey, func(rawObj client.Object) []string {
 		// grab the job object, extract the owner...
 		secret := rawObj.(*v1.Secret)
 		owner := metaV1.GetControllerOf(secret)
@@ -381,14 +373,13 @@ func (r *DockerRegistryReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1alpha1.DockerRegistry{}).
-		Watches(&source.Kind{Type: &v1.Secret{}}, &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &DockerRegistryAuthenticationSecretMapper{r.BaseReconciler},
-		}).
+		Watches(
+			&source.Kind{Type: &v1.Secret{}},
+			handler.EnqueueRequestsFromMapFunc(DockerRegistryAuthenticationSecretMapperMap),
+		).
 		Watches(
 			&source.Kind{Type: &v1.Namespace{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &TouchAllRegistriesMapper{r.BaseReconciler},
-			},
+			handler.EnqueueRequestsFromMapFunc(r.TouchAllRegistriesMapperMap),
 		).
 		Owns(&v1.Secret{}).
 		Complete(r)

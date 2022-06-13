@@ -514,7 +514,7 @@ func golangValueToProtoValue(val interface{}) *protoTypes.Value {
 // +kubebuilder:rbac:groups=security.istio.io,resources=authorizationpolicies,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=security.istio.io,resources=authorizationpolicies/status,verbs=get;update;patch
 
-func (r *ProtectedEndpointReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *ProtectedEndpointReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	task := &ProtectedEndpointReconcilerTask{
 		ProtectedEndpointReconciler: r,
 		ctx:                         context.Background(),
@@ -523,12 +523,8 @@ func (r *ProtectedEndpointReconciler) Reconcile(req ctrl.Request) (ctrl.Result, 
 	return ctrl.Result{}, task.Run(req)
 }
 
-type WatchAllSSOConfig struct {
-	*BaseReconciler
-}
-
-func (r *WatchAllSSOConfig) Map(object handler.MapObject) []reconcile.Request {
-	_, ok := object.Object.(*v1alpha1.SingleSignOnConfig)
+func (r *ProtectedEndpointReconciler) WatchAllSSOConfigMap(object client.Object) []reconcile.Request {
+	_, ok := object.(*v1alpha1.SingleSignOnConfig)
 
 	if !ok {
 		return nil
@@ -556,12 +552,8 @@ func (r *WatchAllSSOConfig) Map(object handler.MapObject) []reconcile.Request {
 	return reqs
 }
 
-type WatchAllRoleBindings struct {
-	*BaseReconciler
-}
-
-func (r *WatchAllRoleBindings) Map(object handler.MapObject) []reconcile.Request {
-	_, ok := object.Object.(*v1alpha1.RoleBinding)
+func (r *ProtectedEndpointReconciler) WatchAllRoleBindingsMap(object client.Object) []reconcile.Request {
+	_, ok := object.(*v1alpha1.RoleBinding)
 
 	if !ok {
 		return nil
@@ -595,15 +587,11 @@ func (r *ProtectedEndpointReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&v1alpha3.EnvoyFilter{}).
 		Watches(
 			&source.Kind{Type: &v1alpha1.SingleSignOnConfig{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &WatchAllSSOConfig{r.BaseReconciler},
-			},
+			handler.EnqueueRequestsFromMapFunc(r.WatchAllSSOConfigMap),
 		).
 		Watches(
 			&source.Kind{Type: &v1alpha1.RoleBinding{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &WatchAllRoleBindings{r.BaseReconciler},
-			},
+			handler.EnqueueRequestsFromMapFunc(r.WatchAllRoleBindingsMap),
 		).
 		Complete(r)
 }

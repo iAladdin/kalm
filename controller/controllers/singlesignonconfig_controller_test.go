@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"testing"
 
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
@@ -13,14 +15,12 @@ import (
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type SSOConfigControllerSuite struct {
 	BasicSuite
 	ctx    context.Context
-	logger *log.DelegatingLogger
+	logger *logr.Logger
 }
 
 func TestSSOConfigControllerSuite(t *testing.T) {
@@ -29,7 +29,8 @@ func TestSSOConfigControllerSuite(t *testing.T) {
 
 func (suite *SSOConfigControllerSuite) SetupSuite() {
 	suite.BasicSuite.SetupSuite(true)
-	suite.logger = ctrl.Log
+	ssoLogger := logf.Log.WithName("test")
+	suite.logger = &ssoLogger
 	suite.ensureNsExists("kalm-system")
 }
 

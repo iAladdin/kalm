@@ -20,10 +20,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
-	cmv1alpha2 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	cmv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	corev1alpha1 "github.com/kalmhq/kalm/controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -60,7 +61,7 @@ const istioNamespace = "istio-system"
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=httpscerts/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificates,verbs=get;list;watch;create;update;patch;delete
 
-func (r *HttpsCertReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *HttpsCertReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var httpsCert corev1alpha1.HttpsCert
 	if err := r.Get(r.ctx, req.NamespacedName, &httpsCert); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -69,7 +70,7 @@ func (r *HttpsCertReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	_, certSecretName := getCertAndCertSecretName(httpsCert)
 
 	var err error
-	// self-managed httpsCert has only secret, no corresponding cmv1alpha2.Certificate
+	// self-managed httpsCert has only secret, no corresponding cmv1.Certificate
 	if httpsCert.Spec.IsSelfManaged {
 		// check if secret present
 		var certSec corev1.Secret
@@ -134,19 +135,15 @@ func NewHttpsCertReconciler(mgr ctrl.Manager) *HttpsCertReconciler {
 	}
 }
 
-type ACMEServerMapper struct {
-	HttpsCertReconciler
-}
-
-func (m ACMEServerMapper) Map(object handler.MapObject) []reconcile.Request {
-	if ready, err := m.isACMEServerReadyForWildcardCert(); err != nil || !ready {
+func (r *HttpsCertReconciler) ACMEServerMapperMap(object client.Object) []reconcile.Request {
+	if ready, err := r.isACMEServerReadyForWildcardCert(); err != nil || !ready {
 		return nil
 	}
 
 	ctx := context.Background()
 
 	var certList corev1alpha1.HttpsCertList
-	if err := m.List(ctx, &certList); err != nil {
+	if err := r.List(ctx, &certList); err != nil {
 		return nil
 	}
 
@@ -169,10 +166,11 @@ func (m ACMEServerMapper) Map(object handler.MapObject) []reconcile.Request {
 func (r *HttpsCertReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1alpha1.HttpsCert{}).
-		Owns(&cmv1alpha2.Certificate{}).
-		Watches(genSourceForObject(&corev1alpha1.ACMEServer{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: ACMEServerMapper{*r},
-		}).
+		Owns(&cmv1.Certificate{}).
+		Watches(
+			&source.Kind{Type: &corev1alpha1.ACMEServer{}},
+			handler.EnqueueRequestsFromMapFunc(r.ACMEServerMapperMap),
+		).
 		Complete(r)
 }
 
@@ -182,12 +180,12 @@ func (r *HttpsCertReconciler) reconcileForAutoManagedHttpsCert(ctx context.Conte
 	dnsNames := getDNSNames(httpsCert)
 	commonName := pickCommonName(dnsNames)
 
-	desiredCert := cmv1alpha2.Certificate{
+	desiredCert := cmv1.Certificate{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: istioNamespace,
 			Name:      certName,
 		},
-		Spec: cmv1alpha2.CertificateSpec{
+		Spec: cmv1.CertificateSpec{
 			SecretName: certSecretName,
 			CommonName: commonName,
 			DNSNames:   dnsNames,
@@ -199,7 +197,7 @@ func (r *HttpsCertReconciler) reconcileForAutoManagedHttpsCert(ctx context.Conte
 	}
 
 	// reconcile cert
-	var cert cmv1alpha2.Certificate
+	var cert cmv1.Certificate
 	var isNew bool
 	err := r.Get(ctx, types.NamespacedName{
 		Namespace: istioNamespace,
@@ -240,7 +238,7 @@ func (r *HttpsCertReconciler) reconcileForAutoManagedHttpsCert(ctx context.Conte
 			}
 		} else {
 			for _, cond := range cert.Status.Conditions {
-				if cond.Type != cmv1alpha2.CertificateConditionReady {
+				if cond.Type != cmv1.CertificateConditionReady {
 					continue
 				}
 
@@ -351,7 +349,7 @@ func genConditionWithErr(err error) corev1alpha1.HttpsCertCondition {
 	}
 }
 
-func transCertCondition(cond cmv1alpha2.CertificateCondition) corev1alpha1.HttpsCertCondition {
+func transCertCondition(cond cmv1.CertificateCondition) corev1alpha1.HttpsCertCondition {
 	return corev1alpha1.HttpsCertCondition{
 		Type:    corev1alpha1.HttpsCertConditionReady,
 		Status:  corev1.ConditionStatus(cond.Status),

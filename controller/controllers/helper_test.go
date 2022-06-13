@@ -10,12 +10,11 @@ import (
 
 	istioScheme "istio.io/client-go/pkg/clientset/versioned/scheme"
 
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha2"
+	"github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"github.com/stretchr/testify/suite"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -114,12 +113,12 @@ func (suite *HttpsCertIssuerControllerSuite) createHttpsCertIssuer(issuer v1alph
 	suite.Nil(suite.K8sClient.Create(context.Background(), &issuer))
 }
 
-func (suite *BasicSuite) reloadObject(key client.ObjectKey, obj runtime.Object) {
+func (suite *BasicSuite) reloadObject(key client.ObjectKey, obj client.Object) {
 	suite.Nil(suite.K8sClient.Get(context.Background(), key, obj))
 }
 
 type singleObject interface {
-	runtime.Object
+	client.Object
 	GetName() string
 	GetNamespace() string
 }
@@ -131,11 +130,11 @@ func (suite *BasicSuite) reloadSingleObject(obj singleObject) {
 	}, obj))
 }
 
-func (suite *BasicSuite) updateObject(obj runtime.Object) {
+func (suite *BasicSuite) updateObject(obj client.Object) {
 	suite.Nil(suite.K8sClient.Update(context.Background(), obj))
 }
 
-func (suite *BasicSuite) createObject(obj runtime.Object) {
+func (suite *BasicSuite) createObject(obj client.Object) {
 	suite.Require().Nil(suite.K8sClient.Create(context.Background(), obj))
 }
 
@@ -186,12 +185,12 @@ func (suite *BasicSuite) SetupTestEnv(testEnv *envtest.Environment, disableWebho
 	suite.Nil(scheme.AddToScheme(scheme.Scheme))
 	suite.Nil(istioScheme.AddToScheme(scheme.Scheme))
 	suite.Nil(v1alpha1.AddToScheme(scheme.Scheme))
-	suite.Nil(v1alpha2.AddToScheme(scheme.Scheme))
+	suite.Nil(v1.AddToScheme(scheme.Scheme))
 
 	disableWebhook := len(disableWebhookOpt) > 0 && disableWebhookOpt[0]
 	if !disableWebhook {
 		testEnv.WebhookInstallOptions = envtest.WebhookInstallOptions{
-			DirectoryPaths: []string{
+			Paths: []string{
 				filepath.Join("..", "config", "webhook"),
 			},
 			MaxTime: time.Duration(30 * time.Second),
@@ -205,7 +204,7 @@ func (suite *BasicSuite) SetupTestEnv(testEnv *envtest.Environment, disableWebho
 
 	// +kubebuilder:scaffold:scheme
 
-	zapLog := zap.Logger(true)
+	zapLog := logf.Log.WithName("test")
 
 	min := 2000
 	max := 8000
@@ -260,7 +259,7 @@ func (suite *BasicSuite) SetupTestEnv(testEnv *envtest.Environment, disableWebho
 	suite.StopChannel = mgrStopChannel
 
 	go func() {
-		err = mgr.Start(mgrStopChannel)
+		err = mgr.Start(context.Background())
 		suite.Require().Nil(err)
 	}()
 

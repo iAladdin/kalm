@@ -779,7 +779,7 @@ type HttpRouteReconciler struct {
 // +kubebuilder:rbac:groups=networking.istio.io,resources=virtualservices,verbs=*
 // +kubebuilder:rbac:groups=networking.istio.io,resources=gateways,verbs=*
 
-func (r *HttpRouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *HttpRouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	task := &HttpRouteReconcilerTask{
 		HttpRouteReconciler: r,
 		ctx:                 context.Background(),
@@ -792,13 +792,8 @@ func NewHttpRouteReconciler(mgr ctrl.Manager) *HttpRouteReconciler {
 	return &HttpRouteReconciler{NewBaseReconciler(mgr, "HttpRoute")}
 }
 
-type WatchAllKalmGateway struct{}
-type WatchAllKalmVirtualService struct{}
-type WatchAllKalmEnvoyFilter struct{}
-type WatchAllService struct{}
-
-func (*WatchAllKalmGateway) Map(object handler.MapObject) []reconcile.Request {
-	gateway, ok := object.Object.(*v1beta1.Gateway)
+func WatchAllKalmGatewayMap(object client.Object) []reconcile.Request {
+	gateway, ok := object.(*v1beta1.Gateway)
 
 	if !ok || gateway.Labels == nil || gateway.Labels[KALM_ROUTE_LABEL] != "true" {
 		return nil
@@ -806,8 +801,8 @@ func (*WatchAllKalmGateway) Map(object handler.MapObject) []reconcile.Request {
 
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{}}}
 }
-func (*WatchAllKalmVirtualService) Map(object handler.MapObject) []reconcile.Request {
-	vs, ok := object.Object.(*v1beta1.VirtualService)
+func WatchAllKalmVirtualServiceMap(object client.Object) []reconcile.Request {
+	vs, ok := object.(*v1beta1.VirtualService)
 
 	if !ok || vs.Labels == nil || vs.Labels[KALM_ROUTE_LABEL] != "true" {
 		return nil
@@ -815,15 +810,15 @@ func (*WatchAllKalmVirtualService) Map(object handler.MapObject) []reconcile.Req
 
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{}}}
 }
-func (*WatchAllKalmEnvoyFilter) Map(object handler.MapObject) []reconcile.Request {
-	vs, ok := object.Object.(*v1alpha32.EnvoyFilter)
+func WatchAllKalmEnvoyFilterMap(object client.Object) []reconcile.Request {
+	vs, ok := object.(*v1alpha32.EnvoyFilter)
 	if !ok || vs.Labels == nil || vs.Labels[KALM_ROUTE_LABEL] != "true" {
 		return nil
 	}
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{}}}
 }
-func (*WatchAllService) Map(object handler.MapObject) []reconcile.Request {
-	_, ok := object.Object.(*corev1.Service)
+func WatchAllServiceMap(object client.Object) []reconcile.Request {
+	_, ok := object.(*corev1.Service)
 	if !ok {
 		return nil
 	}
@@ -835,27 +830,19 @@ func (r *HttpRouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&corev1alpha1.HttpRoute{}).
 		Watches(
 			&source.Kind{Type: &v1beta1.Gateway{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &WatchAllKalmGateway{},
-			},
+			handler.EnqueueRequestsFromMapFunc(WatchAllKalmGatewayMap),
 		).
 		Watches(
 			&source.Kind{Type: &v1beta1.VirtualService{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &WatchAllKalmVirtualService{},
-			},
+			handler.EnqueueRequestsFromMapFunc(WatchAllKalmVirtualServiceMap),
 		).
 		Watches(
 			&source.Kind{Type: &v1alpha32.EnvoyFilter{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &WatchAllKalmEnvoyFilter{},
-			},
+			handler.EnqueueRequestsFromMapFunc(WatchAllKalmEnvoyFilterMap),
 		).
 		Watches(
 			&source.Kind{Type: &corev1.Service{}},
-			&handler.EnqueueRequestsFromMapFunc{
-				ToRequests: &WatchAllService{},
-			},
+			handler.EnqueueRequestsFromMapFunc(WatchAllServiceMap),
 		).
 		Complete(r)
 }

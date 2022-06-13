@@ -38,6 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	corev1alpha1 "github.com/kalmhq/kalm/controller/api/v1alpha1"
@@ -52,8 +53,8 @@ type ACMEServerReconciler struct {
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=acmeservers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core.kalm.dev,resources=acmeservers/status,verbs=get;update;patch
 
-func (r *ACMEServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("acmeserver", req.NamespacedName)
+func (r *ACMEServerReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	_ = r.Log.WithValues("acmeserver", request.NamespacedName)
 
 	acmeServerList := corev1alpha1.ACMEServerList{}
 	if err := r.List(r.ctx, &acmeServerList); err != nil {
@@ -62,9 +63,9 @@ func (r *ACMEServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 
 	size := len(acmeServerList.Items)
 	if size <= 0 {
-		return ctrl.Result{}, nil
+		return reconcile.Result{}, nil
 	} else if size > 1 {
-		return ctrl.Result{}, fmt.Errorf("at most 1 config for acmeServer, see: %d", size)
+		return reconcile.Result{}, fmt.Errorf("at most 1 config for acmeServer, see: %d", size)
 	}
 
 	acmeServer := acmeServerList.Items[0]
@@ -100,7 +101,7 @@ func (r *ACMEServerReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) 
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, nil
+	return reconcile.Result{}, nil
 }
 
 func pickStorageClass(list v1.StorageClassList) v1.StorageClass {
@@ -235,7 +236,7 @@ func (r *ACMEServerReconciler) registerACMEDNS(domains []string) (
 ) {
 	configs = make(map[string]corev1alpha1.DNS01IssuerConfig)
 
-	url := fmt.Sprintf("http://%s/register", getSVCNameForACMEDNS())
+	url := fmt.Sprintf("://%s/register", getSVCNameForACMEDNS())
 
 	for _, domain := range domains {
 		resp, err := http.Post(url, "", nil)
@@ -261,11 +262,8 @@ func (r *ACMEServerReconciler) registerACMEDNS(domains []string) (
 	return
 }
 
-type HttpsCertMapper struct {
-}
-
-func (h HttpsCertMapper) Map(object handler.MapObject) []reconcile.Request {
-	cert, yes := object.Object.(*corev1alpha1.HttpsCert)
+func HttpsCertMapperMap(object client.Object) []reconcile.Request {
+	cert, yes := object.(*corev1alpha1.HttpsCert)
 	if !yes {
 		return nil
 	}
@@ -276,16 +274,13 @@ func (h HttpsCertMapper) Map(object handler.MapObject) []reconcile.Request {
 
 	return []reconcile.Request{
 		{NamespacedName: types.NamespacedName{
-			Name: fmt.Sprintf("trigger-by-https-cert-%s", object.Meta.GetName()),
+			Name: fmt.Sprintf("trigger-by-https-cert-%s", object.GetName()),
 		}},
 	}
 }
 
-type HttpsCertIssuerMapper struct {
-}
-
-func (h HttpsCertIssuerMapper) Map(object handler.MapObject) []reconcile.Request {
-	cert, yes := object.Object.(*corev1alpha1.HttpsCertIssuer)
+func HttpsCertIssuerMapperMap(object client.Object) []reconcile.Request {
+	cert, yes := object.(*corev1alpha1.HttpsCertIssuer)
 	if !yes {
 		return nil
 	}
@@ -296,7 +291,7 @@ func (h HttpsCertIssuerMapper) Map(object handler.MapObject) []reconcile.Request
 
 	return []reconcile.Request{
 		{NamespacedName: types.NamespacedName{
-			Name: fmt.Sprintf("trigger-by-https-cert-issuer-%s", object.Meta.GetName()),
+			Name: fmt.Sprintf("trigger-by-https-cert-issuer-%s", object.GetName()),
 		}},
 	}
 }
@@ -308,31 +303,25 @@ func NewACMEServerReconciler(mgr ctrl.Manager) *ACMEServerReconciler {
 	}
 }
 
-type ACMEDNSComponentMapper struct {
-}
-
-func (A ACMEDNSComponentMapper) Map(object handler.MapObject) []reconcile.Request {
-	if object.Meta.GetName() != v1alpha1.ACMEServerName {
+func ACMEDNSComponentMapperMap(object client.Object) []reconcile.Request {
+	if object.GetName() != v1alpha1.ACMEServerName {
 		return nil
 	}
 
 	return []reconcile.Request{
 		{NamespacedName: types.NamespacedName{
-			Name: fmt.Sprintf("trigger-by-component-change-%s", object.Meta.GetName()),
+			Name: fmt.Sprintf("trigger-by-component-change-%s", object.GetName()),
 		}},
 	}
 }
 
-type ACMEDNSServiceMapper struct {
-}
-
-func (A ACMEDNSServiceMapper) Map(object handler.MapObject) []reconcile.Request {
-	if object.Meta.GetNamespace() != KalmSystemNamespace ||
-		object.Meta.GetName() != GetNameForLoadBalanceServiceForNSDomain() {
+func ACMEDNSServiceMapperMap(object client.Object) []reconcile.Request {
+	if object.GetNamespace() != KalmSystemNamespace ||
+		object.GetName() != GetNameForLoadBalanceServiceForNSDomain() {
 		return nil
 	}
 
-	svc := object.Object.(*corev1.Service)
+	svc := object.(*corev1.Service)
 	if len(svc.Status.LoadBalancer.Ingress) <= 0 ||
 		svc.Status.LoadBalancer.Ingress[0].IP == "" {
 		return nil
@@ -340,7 +329,7 @@ func (A ACMEDNSServiceMapper) Map(object handler.MapObject) []reconcile.Request 
 
 	return []reconcile.Request{
 		{NamespacedName: types.NamespacedName{
-			Name: fmt.Sprintf("trigger-by-lb-svc-change-%s", object.Meta.GetName()),
+			Name: fmt.Sprintf("trigger-by-lb-svc-change-%s", object.GetName()),
 		}},
 	}
 }
@@ -348,18 +337,22 @@ func (A ACMEDNSServiceMapper) Map(object handler.MapObject) []reconcile.Request 
 func (r *ACMEServerReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&corev1alpha1.ACMEServer{}).
-		Watches(genSourceForObject(&corev1alpha1.HttpsCert{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &HttpsCertMapper{},
-		}).
-		Watches(genSourceForObject(&corev1alpha1.HttpsCertIssuer{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &HttpsCertIssuerMapper{},
-		}).
-		Watches(genSourceForObject(&corev1alpha1.Component{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &ACMEDNSComponentMapper{},
-		}).
-		Watches(genSourceForObject(&corev1.Service{}), &handler.EnqueueRequestsFromMapFunc{
-			ToRequests: &ACMEDNSServiceMapper{},
-		}).
+		Watches(
+			&source.Kind{Type: &corev1alpha1.HttpsCert{}},
+			handler.EnqueueRequestsFromMapFunc(HttpsCertMapperMap),
+		).
+		Watches(
+			&source.Kind{Type: &corev1alpha1.HttpsCertIssuer{}},
+			handler.EnqueueRequestsFromMapFunc(HttpsCertIssuerMapperMap),
+		).
+		Watches(
+			&source.Kind{Type: &corev1alpha1.Component{}},
+			handler.EnqueueRequestsFromMapFunc(ACMEDNSComponentMapperMap),
+		).
+		Watches(
+			&source.Kind{Type: &corev1.Service{}},
+			handler.EnqueueRequestsFromMapFunc(ACMEDNSServiceMapperMap),
+		).
 		Complete(r)
 }
 

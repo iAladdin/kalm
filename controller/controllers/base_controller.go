@@ -43,11 +43,11 @@ func NewBaseReconciler(mgr ctrl.Manager, name string) *BaseReconciler {
 	}
 }
 
-func (r *BaseReconciler) EmitWarningEvent(obj runtime.Object, err error, msg string, args ...interface{}) {
+func (r *BaseReconciler) EmitWarningEvent(obj client.Object, err error, msg string, args ...interface{}) {
 	r.Recorder.Eventf(obj, coreV1.EventTypeWarning, string(errors.ReasonForError(err)), msg, args...)
 }
 
-func (r *BaseReconciler) EmitNormalEvent(obj runtime.Object, reason, msg string, args ...interface{}) {
+func (r *BaseReconciler) EmitNormalEvent(obj client.Object, reason, msg string, args ...interface{}) {
 	r.Recorder.Eventf(obj, coreV1.EventTypeNormal, reason, msg, args...)
 }
 

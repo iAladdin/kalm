@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"fmt"
+	"strings"
+
 	corev1 "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -10,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
-	"strings"
 )
 
 type KalmValidateErrorList []KalmValidateError
@@ -75,7 +76,7 @@ func validateProbe(probe *corev1.Probe, fldPath *field.Path) field.ErrorList {
 	if probe == nil {
 		return allErrs
 	}
-	allErrs = append(allErrs, validateHandler(&probe.Handler, fldPath)...)
+	allErrs = append(allErrs, validateHandler(&probe.ProbeHandler, fldPath)...)
 
 	allErrs = append(allErrs, ValidateNonnegativeField(int64(probe.InitialDelaySeconds), fldPath.Child("initialDelaySeconds"))...)
 	allErrs = append(allErrs, ValidateNonnegativeField(int64(probe.TimeoutSeconds), fldPath.Child("timeoutSeconds"))...)
@@ -90,7 +91,7 @@ func ValidateNonnegativeField(value int64, fldPath *field.Path) field.ErrorList 
 	return apimachineryvalidation.ValidateNonnegativeField(value, fldPath)
 }
 
-func validateHandler(handler *corev1.Handler, fldPath *field.Path) field.ErrorList {
+func validateHandler(handler *corev1.ProbeHandler, fldPath *field.Path) field.ErrorList {
 	numHandlers := 0
 	allErrors := field.ErrorList{}
 	if handler.Exec != nil {

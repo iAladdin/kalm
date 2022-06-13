@@ -197,7 +197,7 @@ func (r *KalmOperatorConfigReconciler) reconcileDashboardComponent(configSpec in
 				SuccessThreshold:    1,
 				TimeoutSeconds:      1,
 				FailureThreshold:    3,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/ping",
 						Port:   intstr.FromInt(3001),
@@ -211,7 +211,7 @@ func (r *KalmOperatorConfigReconciler) reconcileDashboardComponent(configSpec in
 				SuccessThreshold:    1,
 				TimeoutSeconds:      1,
 				FailureThreshold:    3,
-				Handler: v1.Handler{
+				ProbeHandler: v1.ProbeHandler{
 					HTTPGet: &v1.HTTPGetAction{
 						Path:   "/ping",
 						Port:   intstr.FromInt(3001),
