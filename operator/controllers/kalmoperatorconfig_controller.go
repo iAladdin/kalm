@@ -160,12 +160,12 @@ func (r *KalmOperatorConfigReconciler) applyFromYaml(yamlName string) error {
 
 	for _, objectBytes := range objectsBytes {
 		object, _, err := decode(objectBytes, nil, nil)
-		cObject := object.(client.Object)
 		if err != nil {
 			r.Log.Error(err, fmt.Sprintf("Decode yaml %s error.", yamlName))
 			return err
 		}
-		// r.Log.Info(fmt.Sprintf("YAML File content: \n %+v \n", object))
+		cObject := object.(client.Object)
+		//r.Log.Info(fmt.Sprintf("YAML File content: \n %+v \n", cObject))
 		objectKey := client.ObjectKeyFromObject(cObject)
 
 		if err != nil {
@@ -258,7 +258,7 @@ func (r *KalmOperatorConfigReconciler) reconcileResources() error {
 			return nil
 		}
 	}
-
+	log.Info("after check istio and cert-manager")
 	configSpec := config.Spec
 	if configSpec.BYOCModeConfig != nil {
 		return r.reconcileBYOCMode()
@@ -364,7 +364,7 @@ func (r *KalmOperatorConfigReconciler) isCertManagerReady() bool {
 }
 
 func (r *KalmOperatorConfigReconciler) isIstioReady() bool {
-	dps := []string{"istiod", "istio-ingressgateway", "prometheus"}
+	dps := []string{"istiod", "istio-ingressgateway"}
 
 	return r.checkIfDPReady(r.Ctx, NamespaceIstio, dps...)
 }

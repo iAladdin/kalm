@@ -9,5 +9,9 @@ metadata:
   namespace: kalm-operator
   name: kalmoperatorconfig-sample
 spec:
-  skipKalmControllerInstallation: true
+#  skipKalmControllerInstallation: true
   skipKalmDashboardInstallation: true
+  skipIstioInstallation: true
+  localModeConfig: {}
+  controller:
+    useLetsencryptProductionAPI: true
