@@ -5,7 +5,7 @@ jobs:
       - image: circleci/golang:1.17
     environment:
       KUBEBUILDER_ASSETS: /home/circleci/kubebuilder/bin
-      GO111MODULE: "on"
+      GO111MODULE: "auto"
     steps:
       - checkout
       - run:
@@ -37,7 +37,7 @@ jobs:
       - image: circleci/golang:1.17
     environment:
       KUBEBUILDER_ASSETS: /home/circleci/kubebuilder/bin
-      GO111MODULE: "on"
+      GO111MODULE: "auto"
     steps:
       - checkout
       - run:
