@@ -48,7 +48,7 @@ install: manifests
 
 setup_webhook_development_env:
 	mkdir -p ./tmp
-	openssl req -x509 -newkey rsa:4096 -keyout ./tmp/tls.key -out ./tmp/tls.crt -days 365 -nodes -subj '/CN=host.minikube.internal'
+	openssl req -x509 -newkey rsa:4096 -days 365 -nodes -subj '/CN=host.minikube.internal' -addext 'subjectAltName = DNS:host.minikube.internal' -keyout ./tmp/tls.key -out ./tmp/tls.crt
 	kubectl kustomize config/webhook/ > ./tmp/kustomized-webhook-manifests.yaml
 	ruby ./scripts/build-development-webhook-yaml.rb
 	kubectl apply -f ./tmp/webhooks.yaml

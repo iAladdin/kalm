@@ -421,8 +421,8 @@ func setupResourcesWatcher(cfg *rest.Config, manager *StandardClientManager) {
 		log.Error("get informer error", zap.Error(err))
 		panic(err)
 	}
-
-	informerCache.Start(manager.StopWatchChan)
+// manager.StopWatchChan
+	informerCache.Start(context.Background())
 }
 
 func getNamespacedName(metaObj metaV1.ObjectMeta) string {

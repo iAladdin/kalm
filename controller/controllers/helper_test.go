@@ -259,7 +259,7 @@ func (suite *BasicSuite) SetupTestEnv(testEnv *envtest.Environment, disableWebho
 	suite.StopChannel = mgrStopChannel
 
 	go func() {
-		err = mgr.Start(context.Background())
+		err = mgr.Start(ctrl.SetupSignalHandler())
 		suite.Require().Nil(err)
 	}()
 

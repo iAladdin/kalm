@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/kalmhq/kalm/api/log"
 	"github.com/kalmhq/kalm/api/resources"
@@ -15,6 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	toolscache "k8s.io/client-go/tools/cache"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 )
 
@@ -46,7 +48,7 @@ func StartWatching(c *Client) {
 	registerWatchHandler(c, &informerCache, &v1alpha1.ACMEServer{}, buildAcmeServerResMessage)
 	registerWatchHandler(c, &informerCache, &v1alpha1.Domain{}, buildDomainResMessage)
 
-	informerCache.Start(c.stopWatcher)
+	informerCache.Start(ctrl.SetupSignalHandler())
 }
 
 func getKindAndKey(obj interface{}) string {
@@ -69,7 +71,7 @@ func registerWatchHandler(c *Client,
 	runtimeObj runtime.Object,
 	buildResMessage func(c *Client, action string, obj interface{}) (*ResMessage, error)) {
 
-	informer, err := (*informerCache).GetInformer(context.Background(), runtimeObj)
+	informer, err := (*informerCache).GetInformer(context.Background(), runtimeObj.(client.Object))
 	if err != nil {
 		log.Error("get informer error", zap.Error(err))
 		return

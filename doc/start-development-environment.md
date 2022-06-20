@@ -1,11 +1,24 @@
 # Setup development environment
 
 1. start localhost k8s cluster
-
+    for v1.18.0
     ```bash
     minikube start --memory 8192 --cpus 4  --kubernetes-version v1.18.0
     minikube addons enable metrics-server
     ```
+    
+    for v1.22.0
+    ```bash
+    minikube delete;minikube start --memory 4096 --cpus 4  --kubernetes-version v1.22.0;
+    minikube addons enable metrics-server
+    ```
+    
+    install istio
+
+    ```bash
+    ./operator/resources/istio-1.13.2/bin/istioctl install --set profile=demo -y
+    ```
+
 2. Start operator
     ```
     # in a new bash session

@@ -263,27 +263,27 @@ func NewResourceManager(cfg *rest.Config, logger *zap.Logger) *ResourceManager {
 }
 
 func (resourceManager *ResourceManager) Get(namespace, name string, obj runtime.Object) error {
-	return resourceManager.Client.Get(resourceManager.ctx, types.NamespacedName{Namespace: namespace, Name: name}, obj)
+	return resourceManager.Client.Get(resourceManager.ctx, types.NamespacedName{Namespace: namespace, Name: name}, obj.(client.Object))
 }
 
 func (resourceManager *ResourceManager) List(obj runtime.Object, opts ...client.ListOption) error {
-	return resourceManager.Client.List(resourceManager.ctx, obj, opts...)
+	return resourceManager.Client.List(resourceManager.ctx, obj.(client.ObjectList), opts...)
 }
 
 func (resourceManager *ResourceManager) Create(obj runtime.Object, opts ...client.CreateOption) error {
-	return resourceManager.Client.Create(resourceManager.ctx, obj, opts...)
+	return resourceManager.Client.Create(resourceManager.ctx, obj.(client.Object), opts...)
 }
 
 func (resourceManager *ResourceManager) Delete(obj runtime.Object, opts ...client.DeleteOption) error {
-	return resourceManager.Client.Delete(resourceManager.ctx, obj, opts...)
+	return resourceManager.Client.Delete(resourceManager.ctx, obj.(client.Object), opts...)
 }
 
 func (resourceManager *ResourceManager) Update(obj runtime.Object, opts ...client.UpdateOption) error {
-	return resourceManager.Client.Update(resourceManager.ctx, obj, opts...)
+	return resourceManager.Client.Update(resourceManager.ctx, obj.(client.Object), opts...)
 }
 
 func (resourceManager *ResourceManager) Patch(obj runtime.Object, patch client.Patch, opts ...client.PatchOption) error {
-	return resourceManager.Client.Patch(resourceManager.ctx, obj, patch, opts...)
+	return resourceManager.Client.Patch(resourceManager.ctx, obj.(client.Object), patch, opts...)
 }
 
 // client Side apply
@@ -294,7 +294,7 @@ func (resourceManager *ResourceManager) Apply(obj runtime.Object) error {
 		return err
 	}
 
-	objectKey, err := client.ObjectKeyFromObject(obj)
+	objectKey := client.ObjectKeyFromObject(obj.(client.Object))
 
 	if err != nil {
 		return err
@@ -309,7 +309,7 @@ func (resourceManager *ResourceManager) Apply(obj runtime.Object) error {
 	setSpec(obj, fetchedCopy)
 	obj = fetchedCopy
 
-	return resourceManager.Patch(obj, client.MergeFrom(fetched))
+	return resourceManager.Patch(obj, client.MergeFrom(fetched.(client.Object)))
 }
 
 // setField sets field of v with given name to given value.

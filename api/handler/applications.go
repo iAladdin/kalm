@@ -25,7 +25,8 @@ func (h *ApiHandler) InstallApplicationsHandlers(e *echo.Group) {
 
 func (h *ApiHandler) setApplicationIntoContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		list, err := h.resourceManager.GetNamespaces(client.MatchingField("metadata.name", c.Param("name")), client.Limit(1))
+		//client.FieldIndexer.IndexField(,&coreV1.Namespace{},)
+		list, err := h.resourceManager.GetNamespaces(client.MatchingFields{"metadata.name", c.Param("name")}, client.Limit(1))
 
 		if err != nil {
 			return err
