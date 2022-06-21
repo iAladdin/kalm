@@ -93,7 +93,8 @@ func (suite *WithControllerTestSuite) SetupSuite() {
 func (suite *WithControllerTestSuite) SetupApiServer(policies ...string) *echo.Echo {
 	e := server.NewEchoInstance()
 	clientManager := client2.NewFakeClientManager(suite.cfg, strings.Join(policies, ""))
-	apiHandler := NewApiHandler(clientManager)
+
+	apiHandler := NewApiHandler(clientManager,nil)
 	apiHandler.InstallMainRoutes(e)
 	apiHandler.InstallWebhookRoutes(e)
 	return e
@@ -343,11 +344,8 @@ func (suite *WithControllerTestSuite) ensureObjectDeleted(obj runtime.Object) {
 	_ = suite.Delete(obj)
 
 	suite.Eventually(func() bool {
-		key, err := client.ObjectKeyFromObject(obj)
-		if err != nil {
-			return false
-		}
-		err = suite.Get(key.Namespace, key.Name, obj)
+		key := client.ObjectKeyFromObject(obj.(client.Object))
+		err := suite.Get(key.Namespace, key.Name, obj)
 		return errors.IsNotFound(err)
 	})
 }

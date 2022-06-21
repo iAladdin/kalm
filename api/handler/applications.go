@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"net/http"
 
 	"github.com/kalmhq/kalm/api/errors"
@@ -25,8 +27,21 @@ func (h *ApiHandler) InstallApplicationsHandlers(e *echo.Group) {
 
 func (h *ApiHandler) setApplicationIntoContext(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		//client.FieldIndexer.IndexField(,&coreV1.Namespace{},)
-		list, err := h.resourceManager.GetNamespaces(client.MatchingFields{"metadata.name", c.Param("name")}, client.Limit(1))
+		nsKey := "metadata.name"
+		h.manager.GetCache().IndexField(context.Background(),&v1alpha1.Component{},nsKey, func(obj client.Object) []string {
+			component, ok := obj.(*v1alpha1.Component)
+			if !ok {
+				return []string{""}
+			}
+			if component.Namespace == "" {
+				return []string{""}
+			}
+			return []string{component.Namespace}
+		})
+		//cClient := h.manager.GetClient()
+		//name := client.InNamespace(c.Param("name"))
+
+		list, err := h.resourceManager.GetNamespaces(client.MatchingFields{nsKey: c.Param("name")}, client.Limit(1))
 
 		if err != nil {
 			return err

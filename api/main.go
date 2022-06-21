@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"go.uber.org/zap"
+	"k8s.io/metrics/pkg/client/clientset/deprecated/scheme"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -22,7 +26,7 @@ import (
 	"github.com/kalmhq/kalm/api/server"
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"github.com/urfave/cli/v2"
-	"k8s.io/client-go/kubernetes/scheme"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 func main() {
@@ -140,7 +144,7 @@ func initClusterK8sClientConfiguration(config *config.Config) (cfg *rest.Config,
 	return
 }
 
-func startMainServer(runningConfig *config.Config, k8sClientConfig *rest.Config) {
+func startMainServer(runningConfig *config.Config, k8sClientConfig *rest.Config, mgr manager.Manager) {
 	e := server.NewEchoInstance()
 
 	// in production docker build, all things are in a single docker
@@ -164,7 +168,7 @@ func startMainServer(runningConfig *config.Config, k8sClientConfig *rest.Config)
 		clientManager = client.NewStandardClientManager(k8sClientConfig, "")
 	}
 
-	apiHandler := handler.NewApiHandler(clientManager)
+	apiHandler := handler.NewApiHandler(clientManager,mgr)
 
 	apiHandler.InstallMainRoutes(e)
 	apiHandler.InstallWebhookRoutes(e)
@@ -193,9 +197,22 @@ func startMetricServer(cfg *rest.Config) {
 }
 
 func run(runningConfig *config.Config) {
+	_ = clientgoscheme.AddToScheme(scheme.Scheme)
 	if err := v1alpha1.AddToScheme(scheme.Scheme); err != nil {
 		panic(err)
 	}
+
+	cfg := ctrl.GetConfigOrDie()
+
+	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
+		Scheme:scheme.Scheme,
+	})
+	if err != nil {
+		log.Error("unable to start manager:" , zap.Error(err))
+		os.Exit(1)
+	}
+
+
 
 	k8sClientConfig, err := initClusterK8sClientConfiguration(runningConfig)
 
@@ -216,9 +233,9 @@ func run(runningConfig *config.Config) {
 	clonedConfig.PrivilegedLocalhostAccess = true
 	clonedConfig.BindAddress = "127.0.0.1"
 	clonedConfig.Port = 3010
-	go startMainServer(clonedConfig, k8sClientConfig)
+	go startMainServer(clonedConfig, k8sClientConfig,mgr)
 
 	// real server serve
 	runningConfig.PrivilegedLocalhostAccess = false
-	startMainServer(runningConfig, k8sClientConfig)
+	startMainServer(runningConfig, k8sClientConfig, mgr)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
 type ApiHandler struct {
@@ -15,6 +16,7 @@ type ApiHandler struct {
 	clientManager   client.ClientManager
 	logger          *zap.Logger
 	KalmMode        v1alpha1.KalmMode
+	manager 	 	manager.Manager
 }
 
 func (h *ApiHandler) InstallWebhookRoutes(e *echo.Echo) {
@@ -106,7 +108,7 @@ func (h *ApiHandler) InstallMainRoutes(e *echo.Echo) {
 	gv1Alpha1WithAuth.GET("/settings", h.handleListSettings)
 }
 
-func NewApiHandler(clientManager client.ClientManager) *ApiHandler {
+func NewApiHandler(clientManager client.ClientManager,mgr manager.Manager) *ApiHandler {
 	kalmMode := v1alpha1.KalmMode(v1alpha1.GetEnvKalmMode())
 
 	return &ApiHandler{
@@ -114,5 +116,6 @@ func NewApiHandler(clientManager client.ClientManager) *ApiHandler {
 		logger:          log.DefaultLogger(),
 		resourceManager: resources.NewResourceManager(clientManager.GetDefaultClusterConfig(), log.DefaultLogger()),
 		KalmMode:        kalmMode,
+		manager: 		 mgr,
 	}
 }

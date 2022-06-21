@@ -139,7 +139,7 @@ func bindHttpsCertFromRequestBody(c echo.Context) (*resources.HttpsCert, error) 
 }
 
 func (h *ApiHandler) getHttpsCertFromContext(c echo.Context) (*resources.HttpsCertResp, error) {
-	list, err := h.resourceManager.GetHttpsCerts(client.MatchingField("metadata.name", c.Param("name")), client.Limit(1))
+	list, err := h.resourceManager.GetHttpsCerts(client.MatchingFields{"metadata.name":c.Param("name")}, client.Limit(1))
 
 	if err != nil {
 		return nil, err

@@ -18,7 +18,7 @@ func (h *ApiHandler) InstallRegistriesHandlers(e *echo.Group) {
 }
 
 func (h *ApiHandler) getRegistryFromContext(c echo.Context) (*resources.DockerRegistry, error) {
-	list, err := h.resourceManager.GetDockerRegistries(client.MatchingField("metadata.name", c.Param("name")), client.Limit(1))
+	list, err := h.resourceManager.GetDockerRegistries(client.MatchingFields{"metadata.name": c.Param("name")}, client.Limit(1))
 
 	if err != nil {
 		return nil, err

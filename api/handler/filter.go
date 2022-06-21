@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"github.com/kalmhq/kalm/api/resources"
 	"github.com/labstack/echo/v4"
 	v1 "k8s.io/api/core/v1"
@@ -37,8 +36,7 @@ func (h *ApiHandler) filterAuthorizedProtectedEndpoints(c echo.Context, records 
 }
 
 func hasName(name string) client.ListOption {
-	client.FieldIndexer.IndexField(context.TODO(),)
-	return client.MatchingFields{"metadata.name", name}
+	return client.MatchingFields{"metadata.name": name}
 }
 
 func limitOne() client.ListOption {
