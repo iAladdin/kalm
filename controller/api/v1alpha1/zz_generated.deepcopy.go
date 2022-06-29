@@ -520,6 +520,13 @@ func (in *ComponentSpec) DeepCopyInto(out *ComponentSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.PodAnnotations != nil {
+		in, out := &in.PodAnnotations, &out.PodAnnotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	if in.Annotations != nil {
 		in, out := &in.Annotations, &out.Annotations
 		*out = make(map[string]string, len(*in))

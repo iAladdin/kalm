@@ -270,13 +270,13 @@ func (r *ComponentReconcilerTask) GetLabels() map[string]string {
 func (r *ComponentReconcilerTask) GetAnnotations() map[string]string {
 	res := make(map[string]string)
 
-	if r.component.Spec.Annotations != nil {
-		for k, v := range r.component.Spec.Annotations {
+	if r.component.Spec.PodAnnotations != nil {
+		for k, v := range r.component.Spec.PodAnnotations {
 			res[k] = v
 		}
 	}
 	r.Log.Info("debug dev => ", "Aladdin Spec => ", r.component.Spec)
-	r.Log.Info("debug dev => ", "Aladdin Annotations => ", res)
+	r.Log.Info("debug dev => ", "Aladdin PodAnnotations => ", res)
 	return res
 }
 

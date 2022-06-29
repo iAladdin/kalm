@@ -51,6 +51,10 @@ spec:
               Annotations:
                 additionalProperties:
                   type: string
+                type: object
+              PodAnnotations:
+                additionalProperties:
+                  type: string
                 description: annotations will add to pods
                 type: object
               command:
