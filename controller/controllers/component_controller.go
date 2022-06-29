@@ -275,7 +275,8 @@ func (r *ComponentReconcilerTask) GetAnnotations() map[string]string {
 			res[k] = v
 		}
 	}
-
+	r.Log.Info("debug dev => ", "Aladdin Spec => ", r.component.Spec)
+	r.Log.Info("debug dev => ", "Aladdin Annotations => ", res)
 	return res
 }
 
