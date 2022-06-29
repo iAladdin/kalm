@@ -3,7 +3,7 @@
 # allow a specific version to be passed in as the first argument, for example:
 # ./script/install-local-mode.sh vx.x.x
 
-default_version=df8af36f884fa42e568a94564668f5d7006804c5
+default_version=8c4825f622b4b0a9838e9a3081662a09f50e2d23
 KALM_VERSION=${1:-$default_version}
 
 echo "Installing Kalm $KALM_VERSION"
