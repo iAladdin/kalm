@@ -52,9 +52,9 @@ type ComponentSpec struct {
 	Labels map[string]string `json:"labels,omitempty"`
 
 	// annotations will add to pods
-	PodAnnotations map[string]string `json:"PodAnnotations,omitempty"`
+	PodAnnotations map[string]string `json:"podAnnotations,omitempty"`
 
-	Annotations map[string]string `json:"Annotations,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 
 	Env []EnvVar `json:"env,omitempty"`
 

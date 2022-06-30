@@ -48,14 +48,9 @@ spec:
           spec:
             description: ComponentSpec defines the desired state of Component
             properties:
-              Annotations:
+              annotations:
                 additionalProperties:
                   type: string
-                type: object
-              PodAnnotations:
-                additionalProperties:
-                  type: string
-                description: annotations will add to pods
                 type: object
               command:
                 type: string
@@ -282,6 +277,11 @@ spec:
               nodeSelectorLabels:
                 additionalProperties:
                   type: string
+                type: object
+              podAnnotations:
+                additionalProperties:
+                  type: string
+                description: annotations will add to pods
                 type: object
               ports:
                 items:
