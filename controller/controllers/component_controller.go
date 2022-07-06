@@ -1131,7 +1131,7 @@ func (r *ComponentReconcilerTask) ConvertToContainerPorts(ports []v1alpha1.Port)
 
 func (r *ComponentReconcilerTask) GetPodTemplateWithoutVols() (template *corev1.PodTemplateSpec, err error) {
 	component := r.component
-	log := r.Log
+	// log := r.Log
 
 	labels := r.GetLabels()
 	labels["app"] = component.Name
