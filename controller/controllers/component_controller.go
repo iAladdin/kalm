@@ -275,8 +275,6 @@ func (r *ComponentReconcilerTask) GetAnnotations() map[string]string {
 			res[k] = v
 		}
 	}
-	r.Log.Info("debug dev => ", "Aladdin Spec => ", r.component.Spec)
-	r.Log.Info("debug dev => ", "Aladdin PodAnnotations => ", res)
 	return res
 }
 
@@ -1208,7 +1206,6 @@ func (r *ComponentReconcilerTask) GetPodTemplateWithoutVols() (template *corev1.
 			SecurityContext: GetPodSecurityContextFromAnnotation(annotations),
 		},
 	}
-	log.Info("debug template", "template", template)
 
 	if v, exist := component.Annotations[AnnoLastUpdatedByWebhook]; exist {
 		template.ObjectMeta.Annotations[AnnoLastUpdatedByWebhook] = v
