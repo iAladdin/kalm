@@ -236,7 +236,7 @@ func (r *ACMEServerReconciler) registerACMEDNS(domains []string) (
 ) {
 	configs = make(map[string]corev1alpha1.DNS01IssuerConfig)
 
-	url := fmt.Sprintf("://%s/register", getSVCNameForACMEDNS())
+	url := fmt.Sprintf("http://%s/register", getSVCNameForACMEDNS())
 
 	for _, domain := range domains {
 		resp, err := http.Post(url, "", nil)
