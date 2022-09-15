@@ -224,7 +224,7 @@ func getSVCNameForACMEDNS() string {
 	if os.Getenv("ACME_DNS_HOST") != "" {
 		host = os.Getenv("ACME_DNS_HOST")
 	} else {
-		host = fmt.Sprintf("%s.%s.svc.cluster.local", v1alpha1.ACMEServerName, KalmSystemNamespace)
+		host = fmt.Sprintf("%s.%s.svc", v1alpha1.ACMEServerName, KalmSystemNamespace)
 	}
 
 	return host
