@@ -145,7 +145,7 @@ func (r *SingleSignOnConfig) commonValidate() error {
 		for i := range r.Spec.Connectors {
 			connector := r.Spec.Connectors[i]
 			basePath := field.NewPath("spec", "connectors", strconv.Itoa(i))
-
+			singlesignonconfiglog.Info("common validate ", "connector", connector)
 			if connector.Type == SSOConnectorTypeGithub {
 				bts, err := json.Marshal(connector)
 
@@ -231,6 +231,8 @@ func (r *SingleSignOnConfig) commonValidate() error {
 					allErrs = append(allErrs, field.Invalid(basePath, r.Name, "Unmarshal to json failed."))
 					continue
 				}
+
+				singlesignonconfiglog.Info("common validate type = Google", "typeConnector", typeConnector)
 
 				if typeConnector.Config.ClientID == "" {
 					allErrs = append(allErrs, field.Invalid(basePath.Child("config", "clientID"), r.Name, "Can't be blank"))
