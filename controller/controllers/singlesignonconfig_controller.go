@@ -63,7 +63,7 @@ type SingleSignOnConfigReconcilerTask struct {
 
 func (r *SingleSignOnConfigReconcilerTask) Run(req ctrl.Request) error {
 	var ssoList v1alpha1.SingleSignOnConfigList
-
+	r.Log.Info("SingleSignOnConfigReconcilerTask run")
 	if err := r.Reader.List(r.ctx, &ssoList); err != nil {
 		r.Log.Error(err, "List sso error.")
 		return err
@@ -82,11 +82,12 @@ func (r *SingleSignOnConfigReconcilerTask) Run(req ctrl.Request) error {
 
 	r.ssoConfig = &ssoConfig
 
+	r.Log.Info("SingleSignOnConfigReconcilerTask LoadResources")
 	if err := r.LoadResources(); err != nil {
 		r.Log.Error(err, "Load resources error")
 		return err
 	}
-
+	r.Log.Info("SingleSignOnConfigReconcilerTask ReconcileResources")
 	return r.ReconcileResources()
 }
 
@@ -820,25 +821,29 @@ func (r *SingleSignOnConfigReconcilerTask) ReconcileDexRouteCert() error {
 }
 
 func (r *SingleSignOnConfigReconcilerTask) ReconcileResources() error {
+	r.Log.Info("SingleSignOnConfigReconcilerTask ReconcileSecret")
 	if err := r.ReconcileSecret(); err != nil {
 		return err
 	}
-
+	r.Log.Info("SingleSignOnConfigReconcilerTask ReconcileAuthProxy")
 	if err := r.ReconcileAuthProxy(); err != nil {
 		return err
 	}
-
+	r.Log.Info("SingleSignOnConfigReconcilerTask Issuer")
 	if r.ssoConfig.Spec.Issuer == "" {
 		// use dex mode
 
+		r.Log.Info("SingleSignOnConfigReconcilerTask ReconcileDexComponent")
 		if err := r.ReconcileDexComponent(); err != nil {
 			return err
 		}
 
+		r.Log.Info("SingleSignOnConfigReconcilerTask ReconcileDexRoute")
 		if err := r.ReconcileDexRoute(); err != nil {
 			return err
 		}
 
+		r.Log.Info("SingleSignOnConfigReconcilerTask ReconcileDexRouteCert")
 		if err := r.ReconcileDexRouteCert(); err != nil {
 			return err
 		}
