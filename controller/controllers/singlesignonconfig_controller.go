@@ -274,14 +274,15 @@ func (r *SingleSignOnConfigReconcilerTask) BuildDexConfigYaml(ssoConfig *v1alpha
 
 	if len(ssoConfig.Spec.Connectors) > 0 {
 		var connectors []interface{}
-
+		r.Log.Info("sso controller ", "connectors", connectors)
 		for _, connector := range ssoConfig.Spec.Connectors {
+			r.Log.Info("sso controller ", "connector", connector)
 			rawConnector := map[string]interface{}{
 				"id":   connector.ID,
 				"type": connector.Type,
 				"name": connector.Name,
 			}
-
+			r.Log.Info("sso controller ", "connector.Config", connector.Config)
 			if connector.Config != nil {
 				var config map[string]interface{}
 				err := json.Unmarshal(connector.Config.Raw, &config)
