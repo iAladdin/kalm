@@ -93,7 +93,7 @@ var _ webhook.Defaulter = &SingleSignOnConfig{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *SingleSignOnConfig) Default() {
-	singlesignonconfiglog.Info("default", "name", r)
+	singlesignonconfiglog.Info("default", "name", r, r.Spec)
 
 	if r.Spec.IDTokenExpirySeconds == nil {
 		r.Spec.IDTokenExpirySeconds = &SSODefaultIDTokenExpirySeconds
@@ -217,8 +217,9 @@ func (r *SingleSignOnConfig) commonValidate() error {
 					}
 				}
 			} else if connector.Type == SSOConnectorTypeGoogle {
+				singlesignonconfiglog.Info("commonValidate", "type google", connector)
 				bts, err := json.Marshal(connector)
-
+				singlesignonconfiglog.Info("commonValidate", "type google bts", bts)
 				if err != nil {
 					allErrs = append(allErrs, field.Invalid(basePath, r.Name, "Marshal to json failed."))
 					continue
@@ -226,7 +227,6 @@ func (r *SingleSignOnConfig) commonValidate() error {
 
 				var typeConnector SSOGoogleConnector
 				err = json.Unmarshal(bts, &typeConnector)
-
 				if err != nil {
 					allErrs = append(allErrs, field.Invalid(basePath, r.Name, "Unmarshal to json failed."))
 					continue
