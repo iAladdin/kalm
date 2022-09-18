@@ -225,9 +225,9 @@ func (r *ProtectedEndpointReconcilerTask) BuildEnvoyFilterListenerPatches(req ct
 
 	var groups []string
 	for _, connector := range r.ssoConfig.Spec.Connectors {
-		if connector.Config == nil {
-			continue
-		}
+		// if connector.Config == nil {
+		// 	continue
+		// }
 
 		var config map[string]interface{}
 		err := json.Unmarshal(connector.Config.Raw, &config)

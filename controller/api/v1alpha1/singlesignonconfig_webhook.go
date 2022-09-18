@@ -94,6 +94,7 @@ var _ webhook.Defaulter = &SingleSignOnConfig{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *SingleSignOnConfig) Default() {
 	singlesignonconfiglog.Info("default", "name", r.Spec)
+	singlesignonconfiglog.Info("default", "name r", r)
 
 	if r.Spec.IDTokenExpirySeconds == nil {
 		r.Spec.IDTokenExpirySeconds = &SSODefaultIDTokenExpirySeconds

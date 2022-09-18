@@ -284,19 +284,19 @@ func (r *SingleSignOnConfigReconcilerTask) BuildDexConfigYaml(ssoConfig *v1alpha
 				"name": connector.Name,
 			}
 			r.Log.Info("sso controller ", "connector.Config", connector.Config)
-			if connector.Config != nil {
-				var config map[string]interface{}
-				err := json.Unmarshal(connector.Config.Raw, &config)
+			// if connector.Config != nil {
+			var config map[string]interface{}
+			err := json.Unmarshal(connector.Config.Raw, &config)
 
-				if err != nil {
-					r.Log.Error(err, "Unmarshal connector config failed")
-					return "", err
-				}
-
-				config["redirectURI"] = oidcProviderInfo.Issuer + "/callback"
-
-				rawConnector["config"] = config
+			if err != nil {
+				r.Log.Error(err, "Unmarshal connector config failed")
+				return "", err
 			}
+
+			config["redirectURI"] = oidcProviderInfo.Issuer + "/callback"
+
+			rawConnector["config"] = config
+			// }
 
 			connectors = append(connectors, rawConnector)
 		}

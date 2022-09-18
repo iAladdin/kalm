@@ -105,7 +105,7 @@ func (suite *SSOConfigControllerSuite) TestSSOBasicCRUD() {
 					Type: "gitlab",
 					ID:   "id",
 					Name: "name",
-					Config: &runtime.RawExtension{Raw: []byte(`{
+					Config: runtime.RawExtension{Raw: []byte(`{
 						"clientID": "fake-id",
 						"clientSecret": "fake-sec",
 						"groups": ["fake-group"]
