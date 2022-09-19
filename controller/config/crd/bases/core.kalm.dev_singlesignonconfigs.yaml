@@ -54,6 +54,7 @@ spec:
                   properties:
                     config:
                       type: object
+                      x-kubernetes-preserve-unknown-fields: true
                     id:
                       type: string
                     name:

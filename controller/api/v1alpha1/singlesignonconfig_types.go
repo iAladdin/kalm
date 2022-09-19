@@ -34,6 +34,7 @@ type DexConnector struct {
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
 	// +kubebuilder:validation:Required
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Config *runtime.RawExtension `json:"config"`
 }
 
