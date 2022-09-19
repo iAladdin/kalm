@@ -13,9 +13,9 @@ import (
 )
 
 type ComponentPluginBinding struct {
-	Name     string                `json:"name"`
-	Config   *runtime.RawExtension `json:"config"`
-	IsActive bool                  `json:"isActive"`
+	Name     string               `json:"name"`
+	Config   runtime.RawExtension `json:"config"`
+	IsActive bool                 `json:"isActive"`
 }
 
 type ComponentPluginBindingListChannel struct {

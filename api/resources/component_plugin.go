@@ -8,9 +8,9 @@ import (
 )
 
 type ComponentPlugin struct {
-	Name         string                `json:"name"`
-	Src          string                `json:"src"`
-	ConfigSchema *runtime.RawExtension `json:"configSchema"`
+	Name         string               `json:"name"`
+	Src          string               `json:"src"`
+	ConfigSchema runtime.RawExtension `json:"configSchema"`
 	//Users        []string              `json:"users,omitempty"`
 }
 

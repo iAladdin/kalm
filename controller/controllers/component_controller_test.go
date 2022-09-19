@@ -154,7 +154,7 @@ func (suite *ComponentControllerSuite) TestComponentSetControllerRef() {
 		Spec: v1alpha1.ComponentPluginBindingSpec{
 			PluginName:    plugin.Name,
 			ComponentName: component.Name,
-			Config:        &runtime.RawExtension{Raw: []byte(`{"replicas": 2}`)},
+			Config:        runtime.RawExtension{Raw: []byte(`{"replicas": 2}`)},
 		},
 	}
 

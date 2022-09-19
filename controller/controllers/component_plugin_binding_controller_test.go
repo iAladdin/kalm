@@ -49,7 +49,7 @@ function BeforeDeploymentSave(deployment) {
     deployment.spec.replicas = config.replicas;
     return deployment;
 }`
-	plugin.Spec.ConfigSchema = &runtime.RawExtension{
+	plugin.Spec.ConfigSchema = runtime.RawExtension{
 		Raw: []byte(`{"type":"object","properties":{"replicas":{"type":"integer"}}}`),
 	}
 	suite.createComponentPlugin(plugin)
@@ -67,7 +67,7 @@ function BeforeDeploymentSave(deployment) {
 		Spec: v1alpha1.ComponentPluginBindingSpec{
 			PluginName:    suite.plugin.Name,
 			ComponentName: suite.component.Name,
-			Config:        &runtime.RawExtension{Raw: []byte(`{"replicas": 2}`)},
+			Config:        runtime.RawExtension{Raw: []byte(`{"replicas": 2}`)},
 		},
 	}
 
@@ -275,7 +275,7 @@ func isOwner(ownerRefs []v1.OwnerReference, name, kind string) bool {
 func (suite *PluginBindingControllerSuite) TestUpdateBindingConfig() {
 	// Please see the initialization function to understand the test context
 
-	suite.pluginBinding.Spec.Config = &runtime.RawExtension{
+	suite.pluginBinding.Spec.Config = runtime.RawExtension{
 		Raw: []byte(`{"replicas": 3}`),
 	}
 	suite.Nil(suite.K8sClient.Update(context.Background(), suite.pluginBinding))

@@ -16,7 +16,7 @@ func TestSingleSignOnConfig_Webhook(t *testing.T) {
 		Spec: SingleSignOnConfigSpec{
 			Connectors: []DexConnector{
 				{
-					Config: &runtime.RawExtension{Raw: []byte(`{"baseURL":"https://git.ddex.io","clientID":"fake-client-id","clientSecret":"fake-sec","groups":["kalm","ddex","bfd"]}`)},
+					Config: runtime.RawExtension{Raw: []byte(`{"baseURL":"https://git.ddex.io","clientID":"fake-client-id","clientSecret":"fake-sec","groups":["kalm","ddex","bfd"]}`)},
 					ID:     "gitlab",
 					Name:   "Gitlab",
 					Type:   "gitlab",

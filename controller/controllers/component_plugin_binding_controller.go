@@ -17,6 +17,7 @@ package controllers
 
 import (
 	"context"
+
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/kalmhq/kalm/controller/api/v1alpha1"
@@ -111,25 +112,25 @@ func (r *ComponentPluginBindingReconcilerTask) UpdatePluginBindingStatus() error
 	isConfigValid := true
 	var configError string
 
-	if pluginProgram.ConfigSchema != nil {
-		if r.binding.Spec.Config == nil {
-			isConfigValid = false
-			configError = "Configuration is required."
-		} else {
-			pluginConfig := gojsonschema.NewStringLoader(string(r.binding.Spec.Config.Raw))
-			res, err := pluginProgram.ConfigSchema.Validate(pluginConfig)
+	// if pluginProgram.ConfigSchema != nil {
+	// 	if r.binding.Spec.Config == nil {
+	// 		isConfigValid = false
+	// 		configError = "Configuration is required."
+	// 	} else {
+	pluginConfig := gojsonschema.NewStringLoader(string(r.binding.Spec.Config.Raw))
+	res, err := pluginProgram.ConfigSchema.Validate(pluginConfig)
 
-			if err != nil {
-				isConfigValid = false
-				configError = err.Error()
-			} else {
-				if !res.Valid() {
-					isConfigValid = false
-					configError = res.Errors()[0].String()
-				}
-			}
+	if err != nil {
+		isConfigValid = false
+		configError = err.Error()
+	} else {
+		if !res.Valid() {
+			isConfigValid = false
+			configError = res.Errors()[0].String()
 		}
 	}
+	// 	}
+	// }
 
 	pluginBindingCopy := r.binding.DeepCopy()
 	pluginBindingCopy.Status.ConfigError = configError

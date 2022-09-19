@@ -1516,9 +1516,9 @@ func findPluginAndValidateConfigNew(pluginBinding *v1alpha1.ComponentPluginBindi
 	}
 
 	if pluginProgram.ConfigSchema != nil {
-		if pluginBinding.Spec.Config == nil {
-			return nil, nil, fmt.Errorf("ComponentPlugin %s require configuration.", pluginBinding.Spec.PluginName)
-		}
+		// if pluginBinding.Spec.Config == nil {
+		// 	return nil, nil, fmt.Errorf("ComponentPlugin %s require configuration.", pluginBinding.Spec.PluginName)
+		// }
 
 		pluginConfig := gojsonschema.NewStringLoader(string(pluginBinding.Spec.Config.Raw))
 		res, err := pluginProgram.ConfigSchema.Validate(pluginConfig)

@@ -18,8 +18,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sync"
+
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	js "github.com/dop251/goja"
 	"github.com/kalmhq/kalm/controller/utils"
@@ -180,15 +181,15 @@ func (r *ComponentPluginReconcilerTask) Run(req ctrl.Request) error {
 	}
 
 	var configSchema *gojsonschema.Schema
-	if r.plugin.Spec.ConfigSchema != nil {
-		schemaLoader := gojsonschema.NewStringLoader(string(r.plugin.Spec.ConfigSchema.Raw))
-		configSchema, err = gojsonschema.NewSchema(schemaLoader)
+	// if r.plugin.Spec.ConfigSchema {
+	schemaLoader := gojsonschema.NewStringLoader(string(r.plugin.Spec.ConfigSchema.Raw))
+	configSchema, err = gojsonschema.NewSchema(schemaLoader)
 
-		if err != nil {
-			r.WarningEvent(err, "compile plugin config schema error")
-			return nil
-		}
+	if err != nil {
+		r.WarningEvent(err, "compile plugin config schema error")
+		return nil
 	}
+	// }
 
 	// The plugin must be compilable before move on
 	if !r.plugin.Status.CompiledSuccessfully {

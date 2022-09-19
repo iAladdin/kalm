@@ -34,7 +34,7 @@ type DexConnector struct {
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
 	// +kubebuilder:validation:Required
-	Config *runtime.RawExtension `json:"config"`
+	Config runtime.RawExtension `json:"config"`
 }
 
 type TemporaryDexUser struct {

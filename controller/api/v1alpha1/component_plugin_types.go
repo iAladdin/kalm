@@ -34,7 +34,7 @@ type ComponentPluginSpec struct {
 	// icon of this plugin
 	Icon string `json:"icon,omitempty"`
 
-	ConfigSchema *runtime.RawExtension `json:"configSchema,omitempty"`
+	ConfigSchema runtime.RawExtension `json:"configSchema,omitempty"`
 }
 
 // ComponentPluginStatus defines the observed state of ComponentPlugin
