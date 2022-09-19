@@ -31,9 +31,9 @@ func (h *ApiHandler) handleGetSSOConfig(c echo.Context) error {
 
 	if ssoConfig != nil && !h.clientManager.CanViewCluster(getCurrentUser(c)) {
 		// hide sensitive info cluster viewer
-		for i := range ssoConfig.Connectors {
-			ssoConfig.Connectors[i].Config = nil
-		}
+		// for i := range ssoConfig.Connectors {
+		// 	ssoConfig.Connectors[i].Config = new(runtime)
+		// }
 	}
 
 	return c.JSON(200, ssoConfig)
