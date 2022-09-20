@@ -13,9 +13,10 @@ import (
 )
 
 type ComponentPluginBinding struct {
-	Name     string                `json:"name"`
-	Config   *runtime.RawExtension `json:"config"`
-	IsActive bool                  `json:"isActive"`
+	Name     string `json:"name"`
+	IsActive bool   `json:"isActive"`
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Config *runtime.RawExtension `json:"config"`
 }
 
 type ComponentPluginBindingListChannel struct {

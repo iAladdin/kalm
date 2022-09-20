@@ -19,6 +19,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -33,6 +34,7 @@ type ComponentPluginBindingSpec struct {
 	PluginName string `json:"pluginName"`
 
 	// configuration of this binding
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Config *runtime.RawExtension `json:"config,omitempty"`
 
 	// disable this pluginbinding

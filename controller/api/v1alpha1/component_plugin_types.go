@@ -34,6 +34,7 @@ type ComponentPluginSpec struct {
 	// icon of this plugin
 	Icon string `json:"icon,omitempty"`
 
+	// +kubebuilder:pruning:PreserveUnknownFields
 	ConfigSchema *runtime.RawExtension `json:"configSchema,omitempty"`
 }
 

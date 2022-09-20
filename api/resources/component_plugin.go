@@ -8,8 +8,9 @@ import (
 )
 
 type ComponentPlugin struct {
-	Name         string                `json:"name"`
-	Src          string                `json:"src"`
+	Name string `json:"name"`
+	Src  string `json:"src"`
+	// +kubebuilder:pruning:PreserveUnknownFields
 	ConfigSchema *runtime.RawExtension `json:"configSchema"`
 	//Users        []string              `json:"users,omitempty"`
 }
