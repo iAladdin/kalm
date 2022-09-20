@@ -391,7 +391,7 @@ func (r *SingleSignOnConfigReconcilerTask) ReconcileDexComponent() error {
 				"sidecar.istio.io/inject": "false",
 			},
 			WorkloadType: v1alpha1.WorkloadTypeServer,
-			Image:        "quay.io/dexidp/dex:v2.28.1",
+			Image:        "dexidp/dex:v2.34.0",
 			Command:      "/usr/local/bin/dex serve /etc/dex/cfg/config.yaml",
 			Env: []v1alpha1.EnvVar{
 				{
