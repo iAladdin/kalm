@@ -61,6 +61,7 @@ spec:
               config:
                 description: configuration of this binding
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
               isDisabled:
                 description: disable this pluginbinding
                 type: boolean
