@@ -43,7 +43,7 @@ func (r *SingleSignOnConfig) SetupWebhookWithManager(mgr ctrl.Manager) error {
 const (
 	SSOConnectorTypeGithub = "github"
 	SSOConnectorTypeGitlab = "gitlab"
-	SSOConnectorTypeGoogle = "google"
+	SSOConnectorTypeOIDC   = "oidc"
 )
 
 // +kubebuilder:object:generate=false
@@ -75,16 +75,16 @@ type SSOGitlabConnector struct {
 }
 
 // +kubebuilder:object:generate=false
-type SSOGoogleConnector struct {
+type SSOOIDCConnector struct {
 	ID     string `json:"id"`
 	Type   string `json:"type"`
 	Name   string `json:"name"`
 	Config struct {
-		HostedDomains string   `json:"hostedDomains"`
-		ClientID      string   `json:"clientID"`
-		ClientSecret  string   `json:"clientSecret"`
-		Groups        []string `json:"groups,omitempty"`
-		AdminEmail    string   `json:"adminEmail,omitempty"`
+		Issuer       string `json:"issuer"`
+		ClientID     string `json:"clientID"`
+		ClientSecret string `json:"clientSecret"`
+		// Groups       []string `json:"groups,omitempty"`
+		// AdminEmail   string   `json:"adminEmail,omitempty"`
 	} `json:"config"`
 }
 
@@ -217,7 +217,7 @@ func (r *SingleSignOnConfig) commonValidate() error {
 						allErrs = append(allErrs, field.Invalid(basePath.Child("config", "groups", strconv.Itoa(j)), r.Name, "Can't be blank"))
 					}
 				}
-			} else if connector.Type == SSOConnectorTypeGoogle {
+			} else if connector.Type == SSOConnectorTypeOIDC {
 				singlesignonconfiglog.Info("commonValidate", "type google", connector)
 				bts, err := json.Marshal(connector)
 				singlesignonconfiglog.Info("commonValidate", "type google bts", bts)
@@ -226,7 +226,7 @@ func (r *SingleSignOnConfig) commonValidate() error {
 					continue
 				}
 
-				var typeConnector SSOGoogleConnector
+				var typeConnector SSOOIDCConnector
 				err = json.Unmarshal(bts, &typeConnector)
 				if err != nil {
 					allErrs = append(allErrs, field.Invalid(basePath, r.Name, "Unmarshal to json failed."))
