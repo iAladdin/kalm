@@ -243,17 +243,17 @@ func (r *SingleSignOnConfig) commonValidate() error {
 					allErrs = append(allErrs, field.Invalid(basePath.Child("config", "clientSecret"), r.Name, "Can't be blank"))
 				}
 
-				if len(typeConnector.Config.Groups) == 0 {
-					allErrs = append(allErrs, field.Invalid(basePath.Child("config", "groups"), r.Name, "Can't be blank"))
-				}
+				// if len(typeConnector.Config.Groups) == 0 {
+				// 	allErrs = append(allErrs, field.Invalid(basePath.Child("config", "groups"), r.Name, "Can't be blank"))
+				// }
 
-				for j := range typeConnector.Config.Groups {
-					groupName := typeConnector.Config.Groups[j]
+				// for j := range typeConnector.Config.Groups {
+				// 	groupName := typeConnector.Config.Groups[j]
 
-					if groupName == "" {
-						allErrs = append(allErrs, field.Invalid(basePath.Child("config", "groups", strconv.Itoa(j)), r.Name, "Can't be blank"))
-					}
-				}
+				// 	if groupName == "" {
+				// 		allErrs = append(allErrs, field.Invalid(basePath.Child("config", "groups", strconv.Itoa(j)), r.Name, "Can't be blank"))
+				// 	}
+				// }
 			} else {
 				allErrs = append(allErrs, field.Invalid(basePath, r.Name, fmt.Sprintf("Unsupport connector type: %s", connector.Type)))
 			}
