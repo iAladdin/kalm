@@ -83,7 +83,8 @@ type SSOGoogleConnector struct {
 		HostedDomains string   `json:"hostedDomains"`
 		ClientID      string   `json:"clientID"`
 		ClientSecret  string   `json:"clientSecret"`
-		Groups        []string `json:"groups"`
+		Groups        []string `json:"groups,omitempty"`
+		AdminEmail    string   `json:"adminEmail,omitempty"`
 	} `json:"config"`
 }
 
