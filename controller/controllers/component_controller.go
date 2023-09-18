@@ -35,7 +35,6 @@ import (
 	appsV1 "k8s.io/api/apps/v1"
 	batchV1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/batch/v1"
-	batchV1Beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -74,7 +73,7 @@ type ComponentReconcilerTask struct {
 	service         *corev1.Service
 	destinationRule *v1alpha3.DestinationRule
 	headlessService *corev1.Service
-	cronJob         *batchV1Beta1.CronJob
+	cronJob         *v1.CronJob
 	deployment      *appsV1.Deployment
 	daemonSet       *appsV1.DaemonSet
 	statefulSet     *appsV1.StatefulSet
@@ -172,8 +171,8 @@ func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &batchV1Beta1.CronJob{}, ownerKey, func(rawObj client.Object) []string {
-		cronjob := rawObj.(*batchV1Beta1.CronJob)
+	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &v1.CronJob{}, ownerKey, func(rawObj client.Object) []string {
+		cronjob := rawObj.(*v1.CronJob)
 		owner := metaV1.GetControllerOf(cronjob)
 
 		if owner == nil {
@@ -214,7 +213,7 @@ func (r *ComponentReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			handler.EnqueueRequestsFromMapFunc(r.ComponentPluginBindingsMapperMap),
 		).
 		Owns(&appsV1.Deployment{}).
-		Owns(&batchV1Beta1.CronJob{}).
+		Owns(&v1.CronJob{}).
 		Owns(&appsV1.DaemonSet{}).
 		Owns(&appsV1.StatefulSet{}).
 		Owns(&corev1.Service{}).
@@ -963,9 +962,9 @@ func (r *ComponentReconcilerTask) ReconcileCronJob(podTemplateSpec *corev1.PodTe
 	successJobHistoryLimit := int32(3)
 	failJobHistoryLimit := int32(5)
 
-	desiredCJSpec := batchV1Beta1.CronJobSpec{
+	desiredCJSpec := v1.CronJobSpec{
 		Schedule: component.Spec.Schedule,
-		JobTemplate: batchV1Beta1.JobTemplateSpec{
+		JobTemplate: v1.JobTemplateSpec{
 			Spec: batchV1.JobSpec{
 				Template: *template,
 			},
@@ -978,7 +977,7 @@ func (r *ComponentReconcilerTask) ReconcileCronJob(podTemplateSpec *corev1.PodTe
 	if cj == nil {
 		isNewCJ = true
 
-		cj = &batchV1Beta1.CronJob{
+		cj = &v1.CronJob{
 			ObjectMeta: metaV1.ObjectMeta{
 				Name:        component.Name,
 				Namespace:   r.namespace.Name,
@@ -1803,7 +1802,7 @@ func (r *ComponentReconcilerTask) LoadDeployment() error {
 }
 
 func (r *ComponentReconcilerTask) LoadCronJob() error {
-	var cornJob batchV1Beta1.CronJob
+	var cornJob v1.CronJob
 	err := r.LoadItem(&cornJob)
 	if err != nil {
 		return client.IgnoreNotFound(err)
